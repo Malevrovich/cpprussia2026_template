@@ -20,7 +20,6 @@
 ```
 cpprussia2026_template/
 ├── backend/                    # Директория для микросервисов
-│   ├── auth_service/          # Пример сервиса аутентификации
 │   ├── CMakeLists.txt         # CMake‑конфигурация всех сервисов
 │   └── Dockerfile             # Docker‑образ для бекенда
 ├── frontend/                  # Готовый фронтенд на Vue.js
