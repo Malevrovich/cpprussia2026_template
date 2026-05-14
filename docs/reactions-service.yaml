@@ -1,0 +1,241 @@
+######################################################################################################################
+#
+# Reactions Service API
+#
+######################################################################################################################
+openapi: 3.0.0
+info:
+  title: Reactions Service API
+  version: 1.0.0
+
+components:
+    schemas:
+        V1ChannelId:
+            description: |
+                Channel ID in the system. There is no need to explicitly create channel, all the IDs already exist.
+            type: integer
+            format: int64
+
+        V1MessageId:
+            description: Unique message ID for a specific channel
+            type: integer
+            format: int64
+
+        V1Login:
+            description: Unique user ID in the system
+            type: string
+            minLength: 3
+
+        V1CurrentUser:
+            description: Current user information, including authorization token if authorized (empty otherwise)
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - name
+            properties:
+                token:
+                    type: string
+                    minLength: 128
+                    maxLength: 128
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                name:
+                    description: Human readable name, if any
+                    type: string
+
+        V1Animation:
+            description: Animation type for reaction
+            type: string
+            enum:
+              - like
+              - dislike
+              - heart
+              - fire
+              - okay
+              - LOL
+              - smile
+
+        V1LikeTriggerRequest:
+            description: |
+                Adds or removes a specified animation on a message.
+                
+                Toggle behavior: 
+                - If user already has this animation on the message, it will be removed.
+                - If user does not have this animation, it will be added.
+                
+                The idempotency_token is used to ensure idempotent operations. 
+                For toggle, the same token can be reused to get the current state without changing it.
+            type: object
+            additionalProperties: false
+            required:
+              - current_user
+              - idempotency_token
+              - channel_id
+              - message_id
+              - animation
+            properties:
+                current_user:
+                    $ref: '#/components/schemas/V1CurrentUser'
+                idempotency_token:
+                    type: string
+                    minLength: 16
+                    maxLength: 256
+                    description: |
+                        Token for idempotent operations. 
+                        If the same token is used again for the same user+channel+message+animation:
+                        - Returns the current state without making changes if the reaction already exists
+                        - Adds the reaction if it doesn't exist
+                channel_id:
+                    $ref: '#/components/schemas/V1ChannelId'
+                message_id:
+                    $ref: '#/components/schemas/V1MessageId'
+                animation:
+                    $ref: '#/components/schemas/V1Animation'
+
+        V1LikeTriggerResponse:
+            description: Response after triggering a like action
+            type: object
+            additionalProperties: false
+            required:
+              - action
+              - current_user_reaction
+            properties:
+                action:
+                    description: Result of the trigger action
+                    type: string
+                    enum:
+                      - added
+                      - removed
+                current_user_reaction:
+                    description: |
+                        Current animation set by the user on this message.
+                        Null if user has no reactions on this message.
+                    type: string
+                    nullable: true
+                    enum:
+                      - like
+                      - dislike
+                      - heart
+                      - fire
+                      - okay
+                      - LOL
+                      - smile
+                      - null
+
+        V1ReactionEntry:
+            description: A single reaction entry
+            type: object
+            additionalProperties: false
+            required:
+              - user
+              - animation
+            properties:
+                user:
+                    $ref: '#/components/schemas/V1Login'
+                animation:
+                    $ref: '#/components/schemas/V1Animation'
+
+        V1GetReactionsResponse:
+            description: Response with all reactions on a message
+            type: object
+            additionalProperties: false
+            required:
+              - reactions
+            properties:
+                reactions:
+                    description: List of all reactions on the message
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/V1ReactionEntry'
+
+        V1Error:
+            description: Error response
+            type: object
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+                code:
+                    type: integer
+                    format: int32
+                message:
+                    type: string
+
+paths:
+    /v1/like/trigger:
+        post:
+            summary: Toggle a reaction on a message
+            description: |
+                Adds or removes a specified animation on a message.
+                
+                If the user already has the specified animation on the message, it will be removed.
+                If the user does not have the animation, it will be added.
+            operationId: triggerLike
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1LikeTriggerRequest'
+            responses:
+                '200':
+                    description: Successful toggle operation
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1LikeTriggerResponse'
+                '400':
+                    description: Invalid request parameters
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                '404':
+                    description: Message not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                '409':
+                    description: Conflict - idempotency token conflict
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+
+    /v1/like/{channel_id}/{message_id}:
+        get:
+            summary: Get all reactions on a message
+            operationId: getReactions
+            parameters:
+              - name: channel_id
+                in: path
+                required: true
+                schema:
+                    $ref: '#/components/schemas/V1ChannelId'
+              - name: message_id
+                in: path
+                required: true
+                schema:
+                    $ref: '#/components/schemas/V1MessageId'
+            responses:
+                '200':
+                    description: Successful response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1GetReactionsResponse'
+                '404':
+                    description: Message not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'

@@ -1,0 +1,238 @@
+######################################################################################################################
+#
+# Files Service API
+#
+######################################################################################################################
+openapi: 3.0.3
+info:
+  title: Files Service API
+  version: 1.0.0
+  description: Сервис передачи файлов
+
+paths:
+  /v1/file/new:
+    post:
+      operationId: uploadFile
+      summary: Загрузить новый файл
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1FileNewRequest'
+            example:
+              login: "user123"
+              filename: "document.pdf"
+              content: "JVBERi0xLjQK..."
+              mime_type: "application/pdf"
+              size: 1024
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1FileNewResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+
+  /v1/file/by-uri:
+    post:
+      operationId: getFileByUri
+      summary: Получить файл по URI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1FileByUriRequest'
+            example:
+              current_user:
+                login: "user123"
+                name: "John Doe"
+              uri: "s3://bucket/file-id"
+      responses:
+        '200':
+          description: File retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1FileByUriResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+        '403':
+          description: Forbidden - user is not the file owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+
+components:
+    schemas:
+        V1Login:
+            description: Unique user ID in the system
+            type: string
+            minLength: 3
+            example: "user123"
+
+        V1CurrentUser:
+            description: Current user information, including authorization token if authorized (empty otherwise)
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - name
+            properties:
+                token:
+                    type: string
+                    minLength: 128
+                    maxLength: 128
+                    description: Authorization token (128 characters)
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                name:
+                    description: Human readable name, if any
+                    type: string
+                    example: "John Doe"
+
+        V1File:
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - filename
+              - content
+            properties:
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                filename:
+                    type: string
+                    minLength: 3
+                    maxLength: 256
+                    example: "document.pdf"
+                content:
+                    type: string
+                    format: base64
+                    description: Base64 encoded file content
+                    example: "JVBERi0xLjQK..."
+                mime_type:
+                    type: string
+                    description: MIME type of the file
+                    example: "application/pdf"
+                size:
+                    type: integer
+                    format: int64
+                    description: File size in bytes
+                    example: 1024
+
+        V1ErrorResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - error
+            properties:
+                error:
+                    type: string
+                    description: Error message
+                    example: "File not found"
+
+        V1FileNewRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - filename
+              - content
+            properties:
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                filename:
+                    type: string
+                    minLength: 3
+                    maxLength: 256
+                    example: "document.pdf"
+                content:
+                    type: string
+                    format: base64
+                    description: Base64 encoded file content
+                    example: "JVBERi0xLjQK..."
+                mime_type:
+                    type: string
+                    description: MIME type of the file
+                    example: "application/pdf"
+                size:
+                    type: integer
+                    format: int64
+                    description: File size in bytes
+                    example: 1024
+
+        V1FileNewResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - current_user
+              - uri
+              - file
+            properties:
+                current_user:
+                    $ref: '#/components/schemas/V1CurrentUser'
+                uri:
+                    type: string
+                    minLength: 3
+                    format: uri
+                    description: URI to access the file (s3://bucket/path or similar)
+                    example: "s3://bucket/file-id"
+                file:
+                    $ref: '#/components/schemas/V1File'
+                    description: Full file information
+
+        V1FileByUriRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - current_user
+              - uri
+            properties:
+                current_user:
+                    $ref: '#/components/schemas/V1CurrentUser'
+                uri:
+                    type: string
+                    minLength: 3
+                    format: uri
+                    description: URI of the file (s3://bucket/path or similar)
+                    example: "s3://bucket/file-id"
+
+        V1FileByUriResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - file
+            properties:
+                file:
+                    $ref: '#/components/schemas/V1File'

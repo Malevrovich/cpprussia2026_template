@@ -1,0 +1,282 @@
+######################################################################################################################
+#
+# Status Service API
+#
+######################################################################################################################
+openapi: 3.0.0
+info:
+  title: Status Service API
+  version: 1.0.0
+
+paths:
+  /v1/user/status/update:
+    post:
+      operationId: updateUserStatus
+      summary: Update user status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1UserStatusUpdateRequest'
+            example:
+              current_user:
+                token: "abc123..."
+                login: "john_doe"
+                name: "John Doe"
+              status:
+                status_type: "online"
+                status_message: "Working from home"
+                visibility: "public"
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1UserStatusUpdateResponse'
+              example:
+                success: true
+                updated_at: "2024-01-15T10:30:00Z"
+                expires_at: "2024-01-15T18:30:00Z"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "invalid_request"
+                message: "status_type is required"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "unauthorized"
+                message: "Invalid or missing token"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "internal_error"
+                message: "An unexpected error occurred"
+
+  /v1/user/status/by-login:
+    post:
+      operationId: getUserStatusByLogin
+      summary: Get user status by login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1UserStatusByLoginRequest'
+            example:
+              current_user:
+                token: "abc123..."
+                login: "jane_doe"
+                name: "Jane Doe"
+              login: "john_doe"
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1UserStatusByLoginResponse'
+              example:
+                status:
+                  status_type: "away"
+                  status_message: "In a meeting"
+                  visibility: "public"
+                  updated_at: "2024-01-15T09:00:00Z"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "invalid_request"
+                message: "login is required"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "unauthorized"
+                message: "Invalid or missing token"
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "forbidden"
+                message: "You do not have permission to view this status"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "not_found"
+                message: "User with specified login not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+              example:
+                error: "internal_error"
+                message: "An unexpected error occurred"
+
+components:
+  schemas:
+    V1Login:
+      description: Unique user ID in the system
+      type: string
+      minLength: 3
+      example: "john_doe"
+
+    V1CurrentUser:
+      description: Current user information, including authorization token if authorized (empty otherwise)
+      type: object
+      additionalProperties: false
+      required:
+        - login
+        - name
+      properties:
+        token:
+          type: string
+          minLength: 128
+          maxLength: 128
+          example: "abc123def456..."
+        login:
+          $ref: '#/components/schemas/V1Login'
+        name:
+          description: Human readable name, if any
+          type: string
+          example: "John Doe"
+
+    V1StatusType:
+      type: string
+      enum:
+        - online
+        - away
+        - busy
+        - offline
+      description: Type of user status
+      example: "online"
+
+    V1Visibility:
+      type: string
+      enum:
+        - public
+        - private
+      description: Visibility of the status
+      example: "public"
+
+    V1UserStatus:
+      description: User status with defined schema
+      type: object
+      additionalProperties: false
+      required:
+        - status_type
+        - status_message
+      properties:
+        status_type:
+          $ref: '#/components/schemas/V1StatusType'
+        status_message:
+          description: User-defined status message
+          type: string
+          maxLength: 500
+          example: "Working from home"
+        visibility:
+          $ref: '#/components/schemas/V1Visibility'
+      example:
+        status_type: "online"
+        status_message: "Working from home"
+        visibility: "public"
+
+    V1ErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "invalid_request"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "status_type is required"
+
+    V1UserStatusUpdateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - current_user
+        - status
+      properties:
+        current_user:
+          $ref: '#/components/schemas/V1CurrentUser'
+        status:
+          $ref: '#/components/schemas/V1UserStatus'
+
+    V1UserStatusUpdateResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - success
+        - updated_at
+      properties:
+        success:
+          type: boolean
+          description: Whether the status update was successful
+          example: true
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the status was updated
+          example: "2024-01-15T10:30:00Z"
+        expires_at:
+          type: string
+          format: date-time
+          description: When the status expires (optional)
+          example: "2024-01-15T18:30:00Z"
+
+    V1UserStatusByLoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - current_user
+        - login
+      properties:
+        current_user:
+          $ref: '#/components/schemas/V1CurrentUser'
+        login:
+          $ref: '#/components/schemas/V1Login'
+
+    V1UserStatusByLoginResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/V1UserStatus'

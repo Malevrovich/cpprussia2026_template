@@ -1,0 +1,28 @@
+# Build directories (needed for copying binaries)
+# build/
+build_*/
+_service/build/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.log
+/tmp/
+
+# Python virtual environment
+venv/
+env/
+
+# Docker ignore itself
+.dockerignore
+
+# Local configs
+*.local.yaml

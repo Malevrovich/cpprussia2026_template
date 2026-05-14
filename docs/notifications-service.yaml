@@ -1,0 +1,224 @@
+######################################################################################################################
+#
+# Notifications Service API
+#
+######################################################################################################################
+openapi: 3.0.0
+info:
+  title: Notifications Service API
+  version: 1.0.0
+paths:
+  /v1/channel/notification/new:
+    post:
+      summary: Create a new channel notification
+      description: Notify another user about a message requiring their attention within a specific channel.
+      operationId: createChannelNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1ChannelNotificationNewRequest'
+      responses:
+        '200':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ChannelNotificationNewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /v1/channel/notification/list:
+    post:
+      summary: List notifications for a user within a channel
+      description: Retrieve message IDs where the current user was notified within a specific channel.
+      operationId: listChannelNotifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1ChannelNotificationListRequest'
+      responses:
+        '200':
+          description: Notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ChannelNotificationListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  schemas:
+    V1ChannelId:
+      description: Channel ID in the system. All channel IDs already exist; no explicit creation needed.
+      type: integer
+      format: int64
+
+    V1MessageId:
+      description: Unique message ID within a specific channel
+      type: integer
+      format: int64
+
+    V1Login:
+      description: Unique user login (username) in the system
+      type: string
+      minLength: 3
+
+    V1CurrentUser:
+      description: Current user information, including authorization token if authorized (empty otherwise)
+      type: object
+      additionalProperties: false
+      required:
+        - login
+        - name
+      properties:
+        token:
+          type: string
+          minLength: 128
+          maxLength: 128
+        login:
+          $ref: '#/components/schemas/V1Login'
+        name:
+          description: Human readable name
+          type: string
+
+    V1NotificationId:
+      description: Unique notification ID (UUID)
+      type: string
+      format: uuid
+
+    V1Error:
+      description: Standard error response
+      type: object
+      additionalProperties: false
+      required:
+        - error
+        - message
+      properties:
+        error:
+          description: Error code
+          type: string
+          example: INVALID_REQUEST
+        message:
+          description: Human-readable error message
+          type: string
+          example: Required field 'other_user_login' is missing
+
+    V1NotificationStatus:
+      description: Notification status
+      type: object
+      additionalProperties: false
+      required:
+        - message_id
+        - read
+      properties:
+        message_id:
+          $ref: '#/components/schemas/V1MessageId'
+        read:
+          description: Whether the notification has been read
+          type: boolean
+
+    V1ChannelNotificationListRequest:
+      description: Request to list notifications for a user within a channel
+      type: object
+      additionalProperties: false
+      required:
+        - current_user
+        - channel_id
+      properties:
+        current_user:
+          $ref: '#/components/schemas/V1CurrentUser'
+        channel_id:
+          $ref: '#/components/schemas/V1ChannelId'
+
+    V1ChannelNotificationListResponse:
+      description: Response containing list of notifications within a channel
+      type: object
+      additionalProperties: false
+      required:
+        - notifications
+      properties:
+        notifications:
+          description: Array of notifications for the user within the channel
+          type: array
+          items:
+            $ref: '#/components/schemas/V1NotificationStatus'
+
+    V1ChannelNotificationNewRequest:
+      description: Notify another user about a message within a channel.
+      type: object
+      additionalProperties: false
+      required:
+        - current_user
+        - channel_id
+        - message_id
+        - other_user_login
+      properties:
+        current_user:
+          $ref: '#/components/schemas/V1CurrentUser'
+        channel_id:
+          $ref: '#/components/schemas/V1ChannelId'
+        message_id:
+          $ref: '#/components/schemas/V1MessageId'
+        other_user_login:
+          description: Login of the user to notify
+          $ref: '#/components/schemas/V1Login'
+
+    V1ChannelNotificationNewResponse:
+      description: Response after creating a notification within a channel
+      type: object
+      additionalProperties: false
+      required:
+        - notification_id
+      properties:
+        notification_id:
+          $ref: '#/components/schemas/V1NotificationId'
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V1Error'
+
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V1Error'
+
+    Forbidden:
+      description: Not authorized to perform this action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V1Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V1Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/V1Error'

@@ -1,0 +1,322 @@
+######################################################################################################################
+#
+# Messaging Service API
+#
+######################################################################################################################
+openapi: 3.0.0
+info:
+  title: Messaging Service API
+  version: 1.0.0
+  description: |
+    Сервис работы с каналами и сообщениями.
+    
+    ## Функциональность
+    - **Отправка сообщений** — создание нового сообщения в канале
+    - **Получение сообщений** — получение списка сообщений по timestamp-диапазону
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+components:
+    schemas:
+        V1ChannelId:
+            description: |
+                Channel ID in the system. There is no need to explicitly create channel, all the IDs already exist.
+            type: integer
+            format: int64
+
+        V1MessageId:
+            description: Unique message ID for a specific channel
+            type: integer
+            format: int64
+
+        V1CurrentUser:
+            description: Current user information, including authorization token if authorized (empty otherwise)
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - name
+            properties:
+                token:
+                    type: string
+                    minLength: 128
+                    maxLength: 128
+                login:
+                    type: string
+                    minLength: 3
+                name:
+                    description: Human readable name, if any
+                    type: string
+            example:
+                token: "a1b2c3d4e5f6..."
+                login: "user123"
+                name: "Иван Иванов"
+
+        V1ChannelMessage:
+            type: object
+            additionalProperties: false
+            required:
+              - current_user
+              - id
+              - timestamp
+              - message
+            properties:
+                current_user:
+                    $ref: '#/components/schemas/V1CurrentUser'
+                id:
+                    type: integer
+                    format: int64
+                timestamp:
+                    type: string
+                    format: date-time
+                    description: Timestamp in ISO8601 format
+                message:
+                    type: string
+                    minLength: 1
+            example:
+                current_user:
+                    token: "a1b2c3d4e5f6..."
+                    login: "user123"
+                    name: "Иван Иванов"
+                id: 12345
+                timestamp: "2026-04-11T10:30:00Z"
+                message: "Привет всем!"
+
+        V1ChannelMessageByTimestampRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - channel_id
+              - from
+              - limit
+            properties:
+                channel_id:
+                    $ref: '#/components/schemas/V1ChannelId'
+                from:
+                    type: string
+                    format: date-time
+                    description: Start timestamp in ISO8601 format
+                to:
+                    type: string
+                    format: date-time
+                    description: End timestamp in ISO8601 format
+                limit:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    maximum: 1000
+                    default: 100
+                    description: Maximum number of messages to return
+            example:
+                channel_id: 1
+                from: "2026-04-01T00:00:00Z"
+                to: "2026-04-11T23:59:59Z"
+                limit: 100
+
+        V1ChannelMessageByTimestampResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - messages
+            properties:
+                messages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/V1ChannelMessage'
+                next_cursor:
+                    type: string
+                    nullable: true
+                    description: Cursor for fetching the next page (null if no more results)
+                has_more:
+                    type: boolean
+                    description: Whether more messages are available
+            example:
+                messages:
+                  - current_user:
+                      token: "a1b2c3d4e5f6..."
+                      login: "user123"
+                      name: "Иван Иванов"
+                    id: 12345
+                    timestamp: "2026-04-11T10:30:00Z"
+                    message: "Привет всем!"
+                next_cursor: "eyJpZCI6MTIzNDV9"
+                has_more: true
+
+        V1ChannelMessageNewRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - current_user
+              - channel_id
+              - message
+            properties:
+                current_user:
+                    $ref: '#/components/schemas/V1CurrentUser'
+                channel_id:
+                    $ref: '#/components/schemas/V1ChannelId'
+                message:
+                    type: string
+                    minLength: 1
+            example:
+                current_user:
+                    token: "a1b2c3d4e5f6..."
+                    login: "user123"
+                    name: "Иван Иванов"
+                channel_id: 1
+                message: "Новое сообщение"
+
+        V1ChannelMessageNewResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - message_id
+            properties:
+                message_id:
+                    $ref: '#/components/schemas/V1MessageId'
+            example:
+                message_id: 12345
+
+        V1Error:
+            type: object
+            additionalProperties: false
+            required:
+              - error
+              - code
+            properties:
+                error:
+                    type: string
+                    description: Error message
+                code:
+                    type: integer
+                    format: int32
+                    description: Error code
+            example:
+                error: "Channel not found"
+                code: 404
+
+paths:
+    /v1/channel/message/new:
+        post:
+            summary: Отправить новое сообщение
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1ChannelMessageNewRequest'
+                        example:
+                            current_user:
+                                token: "a1b2c3d4e5f6..."
+                                login: "user123"
+                                name: "Иван Иванов"
+                            channel_id: 1
+                            message: "Новое сообщение"
+            responses:
+                '200':
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1ChannelMessageNewResponse'
+                            example:
+                                message_id: 12345
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                            example:
+                                error: "Invalid request body"
+                                code: 400
+                '401':
+                    description: Unauthorized
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                            example:
+                                error: "Invalid token"
+                                code: 401
+                '404':
+                    description: Channel Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                            example:
+                                error: "Channel not found"
+                                code: 404
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                            example:
+                                error: "Internal server error"
+                                code: 500
+
+    /v1/channel/message/by-timestamp:
+        post:
+            summary: Получить сообщения за период
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1ChannelMessageByTimestampRequest'
+                        example:
+                            channel_id: 1
+                            from: "2026-04-01T00:00:00Z"
+                            to: "2026-04-11T23:59:59Z"
+                            limit: 100
+            responses:
+                '200':
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1ChannelMessageByTimestampResponse'
+                            example:
+                                messages:
+                                  - current_user:
+                                      token: "a1b2c3d4e5f6..."
+                                      login: "user123"
+                                      name: "Иван Иванов"
+                                    id: 12345
+                                    timestamp: "2026-04-11T10:30:00Z"
+                                    message: "Привет всем!"
+                                next_cursor: "eyJpZCI6MTIzNDV9"
+                                has_more: true
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                            example:
+                                error: "Invalid request body"
+                                code: 400
+                '404':
+                    description: Channel Not Found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                            example:
+                                error: "Channel not found"
+                                code: 404
+                '500':
+                    description: Internal Server Error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                            example:
+                                error: "Internal server error"
+                                code: 500

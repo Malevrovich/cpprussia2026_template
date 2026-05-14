@@ -1,0 +1,252 @@
+######################################################################################################################
+#
+# Auth Service API
+#
+######################################################################################################################
+openapi: 3.0.3
+info:
+    title: Auth Service API
+    description: |
+        Сервис аутентификации и регистрации пользователей.
+
+        ## Безопасность
+        - Пароли передаются по HTTPS и хешируются на бэкенде (bcrypt/argon2)
+        - Токен представляет собой JWT
+    version: 1.0.0
+
+paths:
+    /v1/user/registration:
+        post:
+            summary: Регистрация нового пользователя
+            description: |
+                Registration scenario:
+
+                User sends `POST /v1/user/registration` request with this object in body. If the registration is
+                successful, then the HTTP 200 is returned with V1UserRegistrationResponse object in response body.
+            operationId: registerUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1UserRegistrationRequest'
+                        example:
+                            login: "john_doe"
+                            name: "John Doe"
+                            email: "john@example.com"
+                            phone: "+1234567890"
+                            password: "securePassword123"
+            responses:
+                '200':
+                    description: Registration successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1UserRegistrationResponse'
+                '400':
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                '409':
+                    description: User already exists
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+
+    /v1/user/authorization:
+        post:
+            summary: Авторизация пользователя
+            description: |
+                Authorization scenario:
+
+                User sends `POST /v1/user/authorization` request with this object in body. If the authorization is
+                successful (the user previously registered), then the HTTP 200 is returned with
+                V1UserAuthorizationResponse object in response body.
+            operationId: authorizeUser
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/V1UserAuthorizationRequest'
+                        example:
+                            login: "john_doe"
+                            password: "securePassword123"
+            responses:
+                '200':
+                    description: Authorization successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1UserAuthorizationResponse'
+                '400':
+                    description: Validation error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                '401':
+                    description: Invalid credentials
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+                '500':
+                    description: Internal server error
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/V1Error'
+
+components:
+    schemas:
+        V1Login:
+            description: Unique user ID in the system
+            type: string
+            minLength: 3
+            example: "john_doe"
+
+        V1CurrentUser:
+            description: Current user information (without token - for general info)
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - name
+            properties:
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                name:
+                    description: Human readable name, if any
+                    type: string
+                    example: "John Doe"
+
+        V1AuthorizedUser:
+            description: Authorized user with JWT token
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - name
+              - token
+            properties:
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                name:
+                    description: Human readable name, if any
+                    type: string
+                    example: "John Doe"
+                token:
+                    description: JWT token for subsequent requests (128 characters, Base64-encoded)
+                    type: string
+                    minLength: 128
+                    maxLength: 128
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huX2RvZSIsImlhdCI6MTYzOTM..."
+
+        V1Error:
+            description: Structure to report any error.
+            type: object
+            additionalProperties: false
+            required:
+              - code
+              - message
+            properties:
+                code:
+                    description: machine_readable_error_code
+                    type: string
+                    example: "USER_ALREADY_EXISTS"
+                message:
+                    description: Human readable message
+                    type: string
+                    example: "User with this login already exists"
+                details:
+                    description: Any additional info
+                    type: object
+                    additionalProperties: true
+                    properties: {}
+
+        V1UserRegistrationRequest:
+            description: |
+                Registration scenario:
+
+                User sends `POST /v1/user/registration` request with this object in body. If the registration is
+                successful, then the HTTP 200 is returned with V1UserRegistrationResponse object in response body.
+
+                Note: Passwords are transmitted over HTTPS and hashed on the backend.
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - password
+              - name
+              - email
+              - phone
+            properties:
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                name:
+                    type: string
+                    minLength: 1
+                    example: "John Doe"
+                email:
+                    type: string
+                    format: email
+                    minLength: 3
+                    example: "john@example.com"
+                phone:
+                    type: string
+                    minLength: 3
+                    example: "+1234567890"
+                password:
+                    description: Password (min 6 characters, transmitted over HTTPS)
+                    type: string
+                    minLength: 6
+                    example: "securePassword123"
+
+        V1UserRegistrationResponse:
+            description: |
+                Response after successful registration.
+                Note: This is the same as V1UserAuthorizationResponse since registration
+                immediately authorizes the user and returns the token.
+            $ref: '#/components/schemas/V1UserAuthorizationResponse'
+
+        V1UserAuthorizationRequest:
+            description: |
+                Authorization scenario:
+
+                User sends `POST /v1/user/authorization` request with this object in body. If the authorization is
+                successful (the user previously registered), then the HTTP 200 is returned with
+                V1UserAuthorizationResponse object in response body.
+
+                Note: Passwords are transmitted over HTTPS and hashed on the backend.
+            type: object
+            additionalProperties: false
+            required:
+              - login
+              - password
+            properties:
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                password:
+                    description: Password (transmitted over HTTPS)
+                    type: string
+                    minLength: 6
+                    example: "securePassword123"
+
+        V1UserAuthorizationResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - current_user
+            properties:
+                current_user:
+                    $ref: '#/components/schemas/V1AuthorizedUser'
