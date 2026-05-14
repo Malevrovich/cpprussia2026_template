@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Add subdirectories for each service
-# add_subdirectory(auth_service)
+add_subdirectory(auth_service)
 # add_subdirectory(messaging_service)
 # add_subdirectory(notifications_service)
 # add_subdirectory(files_service)
