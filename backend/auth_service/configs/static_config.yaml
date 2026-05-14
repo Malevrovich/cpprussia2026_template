@@ -60,5 +60,15 @@ components_manager:
             method: GET,POST  # It will only reply to GET (HEAD) and POST requests.
             task_processor: main-task-processor  # Run it on CPU bound task processor
 
+        handler-registration:
+            path: /v1/user/registration
+            method: POST
+            task_processor: main-task-processor
+
+        handler-authorization:
+            path: /v1/user/authorization
+            method: POST
+            task_processor: main-task-processor
+
     coro_pool:
         stack_usage_monitor_enabled: false

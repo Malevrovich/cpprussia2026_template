@@ -23,6 +23,9 @@ add_library(
     ${PROJECT_NAME}_objs OBJECT
     src/greeting.cpp #
     src/hello.cpp #
+    src/json_utils.cpp #
+    src/registration_handler.cpp #
+    src/authorization_handler.cpp #
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs
