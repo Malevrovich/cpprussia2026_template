@@ -26,3 +26,6 @@ env/
 
 # Local configs
 *.local.yaml
+
+.cache
+.ruff_cache
