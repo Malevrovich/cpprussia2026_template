@@ -10,7 +10,6 @@
 
 #include <userver/utils/daemon_run.hpp>
 
-#include <hello.hpp>
 #include "authorization_handler.hpp"
 #include "registration_handler.hpp"
 
@@ -23,7 +22,6 @@ int main(int argc, char* argv[]) {
           .Append<userver::clients::dns::Component>()
           .Append<userver::server::handlers::TestsControl>()
           .Append<userver::congestion_control::Component>()
-          .Append<auth_service::Hello>()
           .Append<auth_service::RegistrationHandler>()
           .Append<auth_service::AuthorizationHandler>();
 
