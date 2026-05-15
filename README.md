@@ -87,6 +87,28 @@ sudo docker compose up -d
 
 ---
 
+## Порты сервисов
+
+Конфигурация Nginx (`nginx/nginx.conf`) определяет порты, на которых должны работать микросервисы:
+
+| Сервис | Внутренний порт (в Docker) | Публичный путь (через Nginx) |
+|--------|----------------------------|-------------------------------|
+| **auth_service** | 8001 | `http://localhost/api/auth/` |
+| **messaging_service** | 8002 | `http://localhost/api/messaging/` |
+| **notifications_service** | 8003 | `http://localhost/api/notifications/` |
+| **files_service** | 8004 | `http://localhost/api/files/` |
+| **reactions_service** | 8005 | `http://localhost/api/reactions/` |
+| **status_service** | 8006 | `http://localhost/api/status/` |
+| **frontend** | 3000 | `http://localhost/` |
+
+**Важно:**
+- Nginx слушает на порту **80** и проксирует запросы к соответствующим сервисам.
+- Внутренние порты используются для коммуникации между контейнерами Docker.
+- При реализации сервиса убедитесь, что в его `config_vars.yaml` указан правильный порт (например, `server_port: 8001` для auth_service).
+- Комментирование/раскомментирование блоков в `nginx/nginx.conf` управляет доступностью сервисов.
+
+---
+
 ## Сборка микросервисов
 
 Перед запуском сервисов необходимо собрать их бинарные файлы. Docker Compose ожидает, что папка `build/` будет находиться в корне проекта (рядом с `docker-compose.yml`).
@@ -188,11 +210,6 @@ coro_pool:
 - Проверьте, что сервис раскомментирован в `docker-compose.yml` и `nginx/nginx.conf`.
 - Убедитесь, что сервис запущен: `sudo docker compose ps`.
 - Посмотрите логи Nginx: `sudo docker compose logs nginx`.
-
-### Ошибки сборки
-
-- Убедитесь, что установлены все зависимости (CMake, компилятор C++20, userver).
-- Используйте параллельную сборку: `cmake --build build -j$(nproc)`.
 
 ---
 
