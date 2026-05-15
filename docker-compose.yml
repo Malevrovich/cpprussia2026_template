@@ -94,7 +94,7 @@ services:
     #   - files-service
     #   - reactions-service
     #   - status-service
-    #   - frontend
+      - frontend
     networks:
       - app-network
 
