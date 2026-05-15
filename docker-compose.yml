@@ -6,8 +6,8 @@ services:
       context: .
       dockerfile: backend/Dockerfile
       args:
-        SERVICE: auth_service
         CONFIG_DIR: backend/auth_service/configs
+        BINARY_PATH: backend/auth_service/build-release/auth_service
     ports:
       - "8001:8001"
     networks:
@@ -18,8 +18,8 @@ services:
   #     context: .
   #     dockerfile: backend/Dockerfile
   #     args:
-  #       SERVICE: messaging_service
   #       CONFIG_DIR: backend/messaging_service/configs
+  #       BINARY_PATH: backend/messaging_service/build-release/messaging_service
   #   ports:
   #     - "8002:8002"
   #   networks:
@@ -30,8 +30,8 @@ services:
   #     context: .
   #     dockerfile: backend/Dockerfile
   #     args:
-  #       SERVICE: notifications_service
   #       CONFIG_DIR: backend/notifications_service/configs
+  #       BINARY_PATH: backend/notifications_service/build-release/notifications_service
   #   ports:
   #     - "8003:8003"
   #   networks:
@@ -42,8 +42,8 @@ services:
   #     context: .
   #     dockerfile: backend/Dockerfile
   #     args:
-  #       SERVICE: files_service
   #       CONFIG_DIR: backend/files_service/configs
+  #       BINARY_PATH: backend/files_service/build-release/files_service
   #   ports:
   #     - "8004:8004"
   #   networks:
@@ -54,8 +54,8 @@ services:
   #     context: .
   #     dockerfile: backend/Dockerfile
   #     args:
-  #       SERVICE: reactions_service
   #       CONFIG_DIR: backend/reactions_service/configs
+  #       BINARY_PATH: backend/reactions_service/build-release/reactions_service
   #   ports:
   #     - "8005:8005"
   #   networks:
@@ -66,8 +66,8 @@ services:
   #     context: .
   #     dockerfile: backend/Dockerfile
   #     args:
-  #       SERVICE: status_service
   #       CONFIG_DIR: backend/status_service/configs
+  #       BINARY_PATH: backend/status_service/build-release/status_service
   #   ports:
   #     - "8006:8006"
   #   networks:
