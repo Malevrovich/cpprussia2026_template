@@ -74,14 +74,16 @@ sudo docker compose up -d
 
 | № | Сервис | Назначение | Документация |
 |---|--------|------------|--------------|
-| 1 | **status_service** | Отслеживание онлайн‑статуса пользователей | [`docs/status-service.md`](docs/status-service.md) |
-| 2 | **reactions_service** | Реакции на сообщения (лайки, эмодзи) | [`docs/reactions-service.md`](docs/reactions-service.md) |
-| 3 | **comments_service** | Комментарии к сообщениям и постам | [`docs/comments-service.md`](docs/comments-service.md) |
-| 4 | **posts_service** | Публикации и треды сообщений | [`docs/posts-service.md`](docs/posts-service.md) |
-| 5 | **users_service** | Управление профилями пользователей | [`docs/users-service.md`](docs/users-service.md) |
-| 6 | **auth_service** | Аутентификация и авторизация | [`docs/auth-service.md`](docs/auth-service.md) |
+| 1 | **auth_service** | Аутентификация и авторизация | [`docs/auth-service.md`](docs/auth-service.md) |
+| 2 | **status_service** | Сервис пользовательских статусов | [`docs/status-service.md`](docs/status-service.md) |
+| 3 | **messaging_service** | Сервис работы с каналами и сообщениями | [`docs/messaging-service.md`](docs/messaging-service.md) |
+| 4 | **reactions_service** | Сервис реакций (лайков/дизлайков) на сообщения | [`docs/reactions-service.md`](docs/reactions-service.md) |
+| 5 | **notifications_service** | Сервис уведомлений о сообщениях в рамках каналов | [`docs/notifications-service.md`](docs/notifications-service.md) |
+| 6 | **files_service** | Сервис передачи файлов | [`docs/files-service.md`](docs/files-service.md) |
 
 **Примечание:** Если вы решите изменить имя какого‑либо сервиса, не забудьте обновить его название в `docker-compose.yml`, `backend/CMakeLists.txt` и `nginx/nginx.conf`.
+
+**Рекомендация:** Начните реализацию с сервиса `auth_service`, так как он обеспечивает аутентификацию и авторизацию, необходимые для работы фронтенда и других сервисов. После его готовности вы сможете тестировать логин и регистрацию, а затем постепенно добавлять остальные сервисы.
 
 ---
 
