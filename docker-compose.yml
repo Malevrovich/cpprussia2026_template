@@ -49,17 +49,17 @@ services:
   #   networks:
   #     - app-network
 
-  # reactions-service:
-  #   build:
-  #     context: .
-  #     dockerfile: backend/Dockerfile
-  #     args:
-  #       CONFIG_DIR: backend/reactions_service/configs
-  #       BINARY_PATH: backend/reactions_service/build-release/reactions_service
-  #   ports:
-  #     - "8005:8005"
-  #   networks:
-  #     - app-network
+  reactions-service:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        CONFIG_DIR: backend/reactions_service/configs
+        BINARY_PATH: backend/reactions_service/build-release/reactions_service
+    ports:
+      - "8005:8005"
+    networks:
+      - app-network
 
   # status-service:
   #   build:
@@ -92,7 +92,7 @@ services:
       - messaging-service
     #   - notifications-service
     #   - files-service
-    #   - reactions-service
+      - reactions-service
     #   - status-service
       - frontend
     networks:
