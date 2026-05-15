@@ -9,7 +9,7 @@ services:
         SERVICE: auth_service
         CONFIG_DIR: backend/auth_service/configs
     ports:
-      - "8001:8080"
+      - "8001:8001"
     networks:
       - app-network
 
@@ -21,7 +21,7 @@ services:
   #       SERVICE: messaging_service
   #       CONFIG_DIR: backend/messaging_service/configs
   #   ports:
-  #     - "8002:8080"
+  #     - "8002:8002"
   #   networks:
   #     - app-network
 
@@ -33,7 +33,7 @@ services:
   #       SERVICE: notifications_service
   #       CONFIG_DIR: backend/notifications_service/configs
   #   ports:
-  #     - "8003:8080"
+  #     - "8003:8003"
   #   networks:
   #     - app-network
 
@@ -45,7 +45,7 @@ services:
   #       SERVICE: files_service
   #       CONFIG_DIR: backend/files_service/configs
   #   ports:
-  #     - "8004:8080"
+  #     - "8004:8004"
   #   networks:
   #     - app-network
 
@@ -57,7 +57,7 @@ services:
   #       SERVICE: reactions_service
   #       CONFIG_DIR: backend/reactions_service/configs
   #   ports:
-  #     - "8005:8080"
+  #     - "8005:8005"
   #   networks:
   #     - app-network
 
@@ -69,7 +69,7 @@ services:
   #       SERVICE: status_service
   #       CONFIG_DIR: backend/status_service/configs
   #   ports:
-  #     - "8006:8080"
+  #     - "8006:8006"
   #   networks:
   #     - app-network
 
