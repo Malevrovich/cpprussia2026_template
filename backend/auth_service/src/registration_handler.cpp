@@ -1,10 +1,19 @@
 #include "registration_handler.hpp"
+#include <userver/components/component_context.hpp>
 #include <userver/formats/json.hpp>
 #include <userver/logging/log.hpp>
 #include <userver/server/http/http_status.hpp>
+#include "crypto_utils.hpp"
 #include "json_utils.hpp"
+#include "user_storage_component.hpp"
 
 namespace auth_service {
+
+RegistrationHandler::RegistrationHandler(
+    const userver::components::ComponentConfig& config,
+    const userver::components::ComponentContext& context)
+    : HttpHandlerBase(config, context),
+      storage_(context.FindComponent<UserStorageComponent>()) {}
 
 std::string RegistrationHandler::HandleRequestThrow(
     const userver::server::http::HttpRequest& request,
@@ -18,7 +27,7 @@ std::string RegistrationHandler::HandleRequestThrow(
     auto registration_request = json_body.As<V1UserRegistrationRequest>();
 
     // Call business logic
-    return HandleRegistration(registration_request);
+    return HandleRegistration(request, registration_request);
   } catch (const std::exception& e) {
     LOG_ERROR() << "Registration error: " << e.what();
     request.GetHttpResponse().SetStatus(
@@ -31,23 +40,60 @@ std::string RegistrationHandler::HandleRequestThrow(
 }
 
 std::string RegistrationHandler::HandleRegistration(
+    const userver::server::http::HttpRequest& http_request,
     const V1UserRegistrationRequest& request) const {
-  // TODO: Implement actual registration logic
-  // - Check if user already exists (return 409 if exists)
-  // - Hash password
-  // - Store user in database
-  // - Generate JWT token
+  // Check if user already exists
+  if (storage_.FindUser(request.login).has_value()) {
+    LOG_WARNING() << "User already exists: " << request.login;
+    http_request.GetHttpResponse().SetStatus(
+        userver::server::http::HttpStatus::kConflict);
+    V1Error error{"USER_ALREADY_EXISTS", "User with this login already exists",
+                  std::nullopt};
+    return userver::formats::json::ToString(Serialize(
+        error,
+        userver::formats::serialize::To<userver::formats::json::Value>{}));
+  }
 
-  // For now, simulate success
+  // Generate salt and hash password
+  std::string salt = GenerateSalt();
+  std::string password_hash = HashPassword(request.password, salt);
+
+  // Create user object
+  User user{
+      .login = request.login,
+      .name = request.name,
+      .email = request.email,
+      .phone = request.phone,
+      .password_hash = password_hash,
+      .salt = salt,
+  };
+
+  // Store user
+  if (!storage_.AddUser(user)) {
+    // This should not happen because we already checked, but just in case
+    http_request.GetHttpResponse().SetStatus(
+        userver::server::http::HttpStatus::kConflict);
+    V1Error error{"USER_ALREADY_EXISTS", "User with this login already exists",
+                  std::nullopt};
+    return userver::formats::json::ToString(Serialize(
+        error,
+        userver::formats::serialize::To<userver::formats::json::Value>{}));
+  }
+
+  // Generate token
+  std::string token = storage_.GenerateToken();
+
+  // Build response
   V1AuthorizedUser authorized_user{
       .login = request.login,
       .name = request.name,
-      .token =
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-          "eyJzdWIiOiJqb2huX2RvZSIsImlhdCI6MTYzOTM... (128 chars)"};
+      .token = token,
+  };
   V1UserAuthorizationResponse response{.current_user = authorized_user};
 
   LOG_INFO() << "User registered: " << request.login;
+  http_request.GetHttpResponse().SetStatus(
+      userver::server::http::HttpStatus::kOk);
   return userver::formats::json::ToString(Serialize(
       response,
       userver::formats::serialize::To<userver::formats::json::Value>{}));

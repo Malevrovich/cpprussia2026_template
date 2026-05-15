@@ -55,7 +55,6 @@ UTEST(JsonUtils, ParseRegistrationRequestMissingField) {
         "name": "Test",
         "email": "test@example.com",
         "phone": "+1234567890"
-        // missing password
     })";
   auto json_value = json::FromString(json);
   // Will throw because key not found (userver's parsing throws)

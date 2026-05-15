@@ -53,4 +53,14 @@ struct V1UserAuthorizationResponse {
 // V1UserRegistrationResponse is same as V1UserAuthorizationResponse
 using V1UserRegistrationResponse = V1UserAuthorizationResponse;
 
+// Internal user representation for storage
+struct User {
+  V1Login login;
+  std::string name;
+  std::string email;
+  std::string phone;
+  std::string password_hash;
+  std::string salt;
+};
+
 }  // namespace auth_service

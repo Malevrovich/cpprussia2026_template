@@ -12,6 +12,7 @@
 
 #include "authorization_handler.hpp"
 #include "registration_handler.hpp"
+#include "user_storage_component.hpp"
 
 int main(int argc, char* argv[]) {
   auto component_list =
@@ -22,6 +23,7 @@ int main(int argc, char* argv[]) {
           .Append<userver::clients::dns::Component>()
           .Append<userver::server::handlers::TestsControl>()
           .Append<userver::congestion_control::Component>()
+          .Append<auth_service::UserStorageComponent>()
           .Append<auth_service::RegistrationHandler>()
           .Append<auth_service::AuthorizationHandler>();
 

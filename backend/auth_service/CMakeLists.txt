@@ -16,6 +16,9 @@ endif()
 
 userver_setup_environment()
 
+# Find OpenSSL for crypto utilities
+find_package(OpenSSL REQUIRED)
+
 # Common sources
 include_directories(src)
 
@@ -24,10 +27,13 @@ add_library(
     src/json_utils.cpp #
     src/registration_handler.cpp #
     src/authorization_handler.cpp #
+    src/crypto_utils.cpp #
+    src/user_storage_component.cpp #
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs
     PUBLIC userver::core #
+    PUBLIC OpenSSL::SSL OpenSSL::Crypto
 )
 
 

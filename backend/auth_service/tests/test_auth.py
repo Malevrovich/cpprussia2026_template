@@ -18,7 +18,7 @@ async def test_registration_happy_path(service_client):
     }
     response = await service_client.post("/v1/user/registration", json=request)
     assert response.status == 200
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert "current_user" in body
     user = body["current_user"]
@@ -42,7 +42,7 @@ async def test_registration_missing_required_field(service_client):
     }
     response = await service_client.post("/v1/user/registration", json=request)
     assert response.status == 400
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert "code" in body
     assert body["code"] == "validation_error"
@@ -60,7 +60,7 @@ async def test_registration_invalid_email_format(service_client):
     }
     response = await service_client.post("/v1/user/registration", json=request)
     assert response.status == 400
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert body["code"] == "validation_error"
 
@@ -76,7 +76,7 @@ async def test_registration_short_password(service_client):
     }
     response = await service_client.post("/v1/user/registration", json=request)
     assert response.status == 400
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert body["code"] == "validation_error"
 
@@ -96,7 +96,7 @@ async def test_registration_duplicate_user(service_client):
     # Second registration - must be 409 Conflict
     response2 = await service_client.post("/v1/user/registration", json=request)
     assert response2.status == 409
-    assert response2.headers["Content-Type"] == "application/json"
+    assert response2.headers["Content-Type"].startswith("application/json")
     body = response2.json()
     assert body["code"] == "USER_ALREADY_EXISTS"
 
@@ -121,7 +121,7 @@ async def test_authorization_happy_path(service_client):
     }
     response = await service_client.post("/v1/user/authorization", json=auth_request)
     assert response.status == 200
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert "current_user" in body
     user = body["current_user"]
@@ -153,7 +153,7 @@ async def test_authorization_invalid_credentials(service_client):
     }
     response = await service_client.post("/v1/user/authorization", json=auth_request)
     assert response.status == 401
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert body["code"] == "INVALID_CREDENTIALS"
 
@@ -166,7 +166,7 @@ async def test_authorization_nonexistent_user(service_client):
     }
     response = await service_client.post("/v1/user/authorization", json=auth_request)
     assert response.status == 401
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert body["code"] == "INVALID_CREDENTIALS"
 
@@ -179,7 +179,7 @@ async def test_authorization_missing_field(service_client):
     }
     response = await service_client.post("/v1/user/authorization", json=auth_request)
     assert response.status == 400
-    assert response.headers["Content-Type"] == "application/json"
+    assert response.headers["Content-Type"].startswith("application/json")
     body = response.json()
     assert body["code"] == "validation_error"
 

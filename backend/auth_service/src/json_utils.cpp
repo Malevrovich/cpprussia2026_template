@@ -1,4 +1,5 @@
 #include "json_utils.hpp"
+#include <regex>
 #include <userver/formats/json.hpp>
 #include <userver/formats/parse/common_containers.hpp>
 #include <userver/formats/serialize/common_containers.hpp>
@@ -33,7 +34,11 @@ V1UserRegistrationRequest Parse(
   if (request.password.size() < 6) {
     throw std::runtime_error("password must be at least 6 characters");
   }
-  // TODO: email format validation
+  // Email format validation
+  static const std::regex email_regex(R"(^[^@]+@[^@]+\.[^@]+$)");
+  if (!std::regex_match(request.email, email_regex)) {
+    throw std::runtime_error("email must be a valid email address");
+  }
 
   return request;
 }
