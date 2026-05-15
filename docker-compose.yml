@@ -1,17 +1,17 @@
 version: '3.8'
 
 services:
-  # auth-service:
-  #   build:
-  #     context: .
-  #     dockerfile: backend/Dockerfile
-  #     args:
-  #       SERVICE: auth_service
-  #       CONFIG_DIR: backend/auth_service/configs
-  #   ports:
-  #     - "8001:8080"
-  #   networks:
-  #     - app-network
+  auth-service:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        SERVICE: auth_service
+        CONFIG_DIR: backend/auth_service/configs
+    ports:
+      - "8001:8080"
+    networks:
+      - app-network
 
   # messaging-service:
   #   build:
