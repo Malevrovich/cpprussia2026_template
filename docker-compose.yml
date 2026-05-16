@@ -61,17 +61,17 @@ services:
     networks:
       - app-network
 
-  # status-service:
-  #   build:
-  #     context: .
-  #     dockerfile: backend/Dockerfile
-  #     args:
-  #       CONFIG_DIR: backend/status_service/configs
-  #       BINARY_PATH: backend/status_service/build-release/status_service
-  #   ports:
-  #     - "8006:8006"
-  #   networks:
-  #     - app-network
+  status-service:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        CONFIG_DIR: backend/status_service/configs
+        BINARY_PATH: backend/status_service/build-release/status_service
+    ports:
+      - "8006:8006"
+    networks:
+      - app-network
 
   frontend:
     build:

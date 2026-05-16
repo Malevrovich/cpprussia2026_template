@@ -55,13 +55,10 @@ components_manager:
             throttling_enabled: false
             url_trailing_slash: strict-match
 
-        # File storage component for in-memory file storage
-        file-storage:
-            # No specific configuration needed for in-memory storage
+        status-storage: {}
 
-        # Handler for uploading new files
-        handler-file-new:
-            path: /v1/file/new
+        handler-status-update:
+            path: /v1/user/status/update
             method: POST
             task_processor: main-task-processor
             throttling_enabled: false
@@ -69,15 +66,13 @@ components_manager:
             request_body_size_log_limit: 1024
             response_data_size_log_limit: 1024
 
-        # Handler for retrieving files by URI
-        handler-file-by-uri:
-            path: /v1/file/by-uri
+        handler-status-by-login:
+            path: /v1/user/status/by-login
             method: POST
             task_processor: main-task-processor
             throttling_enabled: false
             url_trailing_slash: strict-match
             request_body_size_log_limit: 1024
             response_data_size_log_limit: 1024
-
     coro_pool:
         stack_usage_monitor_enabled: false
