@@ -25,17 +25,17 @@ services:
     networks:
       - app-network
 
-  # notifications-service:
-  #   build:
-  #     context: .
-  #     dockerfile: backend/Dockerfile
-  #     args:
-  #       CONFIG_DIR: backend/notifications_service/configs
-  #       BINARY_PATH: backend/notifications_service/build-release/notifications_service
-  #   ports:
-  #     - "8003:8003"
-  #   networks:
-  #     - app-network
+  notifications-service:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        CONFIG_DIR: backend/notifications_service/configs
+        BINARY_PATH: backend/notifications_service/build-release/notifications_service
+    ports:
+      - "8003:8003"
+    networks:
+      - app-network
 
   # files-service:
   #   build:
@@ -90,7 +90,7 @@ services:
     depends_on:
       - auth-service
       - messaging-service
-    #   - notifications-service
+      - notifications-service
     #   - files-service
       - reactions-service
     #   - status-service
