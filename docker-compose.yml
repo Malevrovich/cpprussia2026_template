@@ -37,17 +37,17 @@ services:
     networks:
       - app-network
 
-  # files-service:
-  #   build:
-  #     context: .
-  #     dockerfile: backend/Dockerfile
-  #     args:
-  #       CONFIG_DIR: backend/files_service/configs
-  #       BINARY_PATH: backend/files_service/build-release/files_service
-  #   ports:
-  #     - "8004:8004"
-  #   networks:
-  #     - app-network
+  files-service:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        CONFIG_DIR: backend/files_service/configs
+        BINARY_PATH: backend/files_service/build-release/files_service
+    ports:
+      - "8004:8004"
+    networks:
+      - app-network
 
   reactions-service:
     build:
@@ -91,7 +91,7 @@ services:
       - auth-service
       - messaging-service
       - notifications-service
-    #   - files-service
+      - files-service
       - reactions-service
     #   - status-service
       - frontend

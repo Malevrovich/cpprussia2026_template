@@ -1,0 +1,85 @@
+#include "file_by_uri_handler.hpp"
+
+#include <userver/components/component.hpp>
+#include <userver/server/handlers/exceptions.hpp>
+#include <userver/server/http/http_status.hpp>
+#include "file_storage_component.hpp"
+#include "json_utils.hpp"
+
+namespace files_service {
+
+FileByUriHandler::FileByUriHandler(
+    const userver::components::ComponentConfig& config,
+    const userver::components::ComponentContext& context)
+    : HttpHandlerBase(config, context),
+      storage_(context.FindComponent<FileStorageComponent>()) {}
+
+std::string FileByUriHandler::HandleRequestThrow(
+    const userver::server::http::HttpRequest& request,
+    userver::server::request::RequestContext&) const {
+  // Only POST method is allowed
+  if (request.GetMethod() != userver::server::http::HttpMethod::kPost) {
+    request.GetHttpResponse().SetStatus(
+        userver::server::http::HttpStatus::kMethodNotAllowed);
+    V1ErrorResponse error{"Method not allowed. Use POST."};
+    return userver::formats::json::ToString(Serialize(
+        error,
+        userver::formats::serialize::To<userver::formats::json::Value>{}));
+  }
+
+  // Parse request body
+  auto request_body = userver::formats::json::FromString(request.RequestBody());
+  auto file_request = request_body.As<V1FileByUriRequest>();
+
+  return HandleGetFile(request, file_request);
+}
+
+std::string FileByUriHandler::HandleGetFile(
+    const userver::server::http::HttpRequest& http_request,
+    const V1FileByUriRequest& request) const {
+  // Validate required fields
+  if (request.uri.empty()) {
+    http_request.GetHttpResponse().SetStatus(
+        userver::server::http::HttpStatus::kBadRequest);
+    V1ErrorResponse error{"Field 'uri' is required"};
+    return userver::formats::json::ToString(Serialize(
+        error,
+        userver::formats::serialize::To<userver::formats::json::Value>{}));
+  }
+
+  // Check if file exists
+  auto file_opt = storage_.GetFileByUri(request.uri);
+  if (!file_opt.has_value()) {
+    http_request.GetHttpResponse().SetStatus(
+        userver::server::http::HttpStatus::kNotFound);
+    V1ErrorResponse error{"File not found"};
+    return userver::formats::json::ToString(Serialize(
+        error,
+        userver::formats::serialize::To<userver::formats::json::Value>{}));
+  }
+
+  // Check ownership
+  if (!storage_.CheckOwnership(request.uri, request.current_user.login)) {
+    http_request.GetHttpResponse().SetStatus(
+        userver::server::http::HttpStatus::kForbidden);
+    V1ErrorResponse error{"User is not the owner of this file"};
+    return userver::formats::json::ToString(Serialize(
+        error,
+        userver::formats::serialize::To<userver::formats::json::Value>{}));
+  }
+
+  // Create response
+  V1FileByUriResponse response;
+  response.file = file_opt.value();
+
+  // Set response content type
+  http_request.GetHttpResponse().SetContentType(
+      userver::http::content_type::kApplicationJson);
+
+  // Serialize response
+  auto json_response =
+      userver::formats::json::ValueBuilder(response).ExtractValue();
+  return userver::formats::json::ToString(json_response);
+}
+
+}  // namespace files_service
