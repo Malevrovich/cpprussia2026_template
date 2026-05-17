@@ -83,6 +83,32 @@ bool NotificationStorageComponent::MarkAsRead(
   return true;
 }
 
+bool NotificationStorageComponent::MarkNotificationAsRead(
+    V1ChannelId channel_id, V1MessageId message_id, const V1Login& user_login) {
+  std::lock_guard lock(mutex_);
+
+  auto channel_it = notifications_by_channel_and_user_.find(channel_id);
+  if (channel_it == notifications_by_channel_and_user_.end()) {
+    return false;
+  }
+
+  auto user_it = channel_it->second.find(user_login);
+  if (user_it == channel_it->second.end()) {
+    return false;
+  }
+
+  bool found = false;
+  for (auto& record : user_it->second) {
+    if (record.message_id == message_id && !record.read) {
+      record.read = true;
+      found = true;
+      // Don't break, mark all matching notifications as read
+    }
+  }
+
+  return found;
+}
+
 bool NotificationStorageComponent::NotificationExists(
     const std::string& notification_id) const {
   std::lock_guard lock(mutex_);

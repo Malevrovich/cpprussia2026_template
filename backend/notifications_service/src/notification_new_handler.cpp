@@ -31,7 +31,7 @@ std::string NotificationNewHandler::HandleRequestThrow(
 
     return HandleCreateNotification(request, create_request);
   } catch (const userver::formats::json::MemberMissingException& ex) {
-    V1Error error{.error = "INVALID_REQUEST", .code = 400};
+    V1Error error{.error = "INVALID_REQUEST", .message = ex.what()};
     throw userver::server::handlers::ClientError(
         userver::server::handlers::ExternalBody{
             userver::formats::json::ToString(
@@ -45,7 +45,8 @@ std::string NotificationNewHandler::HandleCreateNotification(
     const V1ChannelNotificationNewRequest& request) const {
   // Basic validation
   if (request.other_user_login.empty()) {
-    V1Error error{.error = "INVALID_REQUEST", .code = 400};
+    V1Error error{.error = "INVALID_REQUEST",
+                  .message = "other_user_login is empty"};
     throw userver::server::handlers::ClientError(
         userver::server::handlers::ExternalBody{
             userver::formats::json::ToString(

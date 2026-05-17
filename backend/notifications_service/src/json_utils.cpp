@@ -31,6 +31,16 @@ V1ChannelNotificationListRequest Parse(
   return result;
 }
 
+V1ChannelNotificationReadRequest Parse(
+    const json::Value& json,
+    userver::formats::parse::To<V1ChannelNotificationReadRequest>) {
+  V1ChannelNotificationReadRequest result;
+  result.current_user = json["current_user"].As<V1CurrentUser>();
+  result.channel_id = json["channel_id"].As<V1ChannelId>();
+  result.message_id = json["message_id"].As<V1MessageId>();
+  return result;
+}
+
 json::Value Serialize(const V1ChannelNotificationNewResponse& response,
                       userver::formats::serialize::To<json::Value>) {
   json::ValueBuilder builder;
@@ -42,6 +52,13 @@ json::Value Serialize(const V1ChannelNotificationListResponse& response,
                       userver::formats::serialize::To<json::Value>) {
   json::ValueBuilder builder;
   builder["notifications"] = response.notifications;
+  return builder.ExtractValue();
+}
+
+json::Value Serialize(const V1ChannelNotificationReadResponse& response,
+                      userver::formats::serialize::To<json::Value>) {
+  json::ValueBuilder builder;
+  builder["ok"] = response.ok;
   return builder.ExtractValue();
 }
 
@@ -57,7 +74,7 @@ json::Value Serialize(const V1Error& error,
                       userver::formats::serialize::To<json::Value>) {
   json::ValueBuilder builder;
   builder["error"] = error.error;
-  builder["code"] = error.code;
+  builder["message"] = error.message;
   return builder.ExtractValue();
 }
 

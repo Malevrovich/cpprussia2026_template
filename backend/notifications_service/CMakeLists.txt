@@ -31,6 +31,7 @@ add_library(
     src/notification_storage_component.cpp #
     src/notification_new_handler.cpp #
     src/notification_list_handler.cpp #
+    src/notification_read_handler.cpp #
 )
 target_link_libraries(
     ${PROJECT_NAME}_objs

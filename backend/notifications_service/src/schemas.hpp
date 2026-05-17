@@ -55,10 +55,23 @@ struct V1ChannelNotificationListResponse {
   std::vector<V1NotificationStatus> notifications;
 };
 
+// V1ChannelNotificationReadRequest - Request to mark a notification as read
+struct V1ChannelNotificationReadRequest {
+  V1CurrentUser current_user;
+  V1ChannelId channel_id;
+  V1MessageId message_id;
+};
+
+// V1ChannelNotificationReadResponse - Response after marking a notification as
+// read
+struct V1ChannelNotificationReadResponse {
+  bool ok;
+};
+
 // V1Error - Standard error response
 struct V1Error {
   std::string error;
-  int32_t code;
+  std::string message;
 };
 
 }  // namespace notifications_service

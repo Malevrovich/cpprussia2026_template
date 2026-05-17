@@ -23,12 +23,21 @@ V1ChannelNotificationListRequest Parse(
     const json::Value& json,
     userver::formats::parse::To<V1ChannelNotificationListRequest>);
 
+// Parse V1ChannelNotificationReadRequest from JSON
+V1ChannelNotificationReadRequest Parse(
+    const json::Value& json,
+    userver::formats::parse::To<V1ChannelNotificationReadRequest>);
+
 // Serialize V1ChannelNotificationNewResponse to JSON
 json::Value Serialize(const V1ChannelNotificationNewResponse& response,
                       userver::formats::serialize::To<json::Value>);
 
 // Serialize V1ChannelNotificationListResponse to JSON
 json::Value Serialize(const V1ChannelNotificationListResponse& response,
+                      userver::formats::serialize::To<json::Value>);
+
+// Serialize V1ChannelNotificationReadResponse to JSON
+json::Value Serialize(const V1ChannelNotificationReadResponse& response,
                       userver::formats::serialize::To<json::Value>);
 
 // Serialize V1NotificationStatus to JSON

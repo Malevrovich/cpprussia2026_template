@@ -12,6 +12,7 @@
 
 #include "notification_list_handler.hpp"
 #include "notification_new_handler.hpp"
+#include "notification_read_handler.hpp"
 #include "notification_storage_component.hpp"
 
 int main(int argc, char* argv[]) {
@@ -25,7 +26,8 @@ int main(int argc, char* argv[]) {
           .Append<userver::congestion_control::Component>()
           .Append<notifications_service::NotificationStorageComponent>()
           .Append<notifications_service::NotificationNewHandler>()
-          .Append<notifications_service::NotificationListHandler>();
+          .Append<notifications_service::NotificationListHandler>()
+          .Append<notifications_service::NotificationReadHandler>();
 
   return userver::utils::DaemonMain(argc, argv, component_list);
 }

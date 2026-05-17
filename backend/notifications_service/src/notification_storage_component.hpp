@@ -47,6 +47,11 @@ class NotificationStorageComponent final
   /// Returns true if notification was found and updated.
   bool MarkAsRead(const std::string& notification_id);
 
+  /// Mark a notification as read by channel, message, and user.
+  /// Returns true if notification was found and updated.
+  bool MarkNotificationAsRead(V1ChannelId channel_id, V1MessageId message_id,
+                              const V1Login& user_login);
+
   /// Check if a notification exists.
   bool NotificationExists(const std::string& notification_id) const;
 

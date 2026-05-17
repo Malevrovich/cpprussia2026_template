@@ -1,4 +1,4 @@
-#include "notification_list_handler.hpp"
+#include "notification_read_handler.hpp"
 
 #include <userver/components/component.hpp>
 #include <userver/formats/json/exception.hpp>
@@ -10,13 +10,13 @@
 
 namespace notifications_service {
 
-NotificationListHandler::NotificationListHandler(
+NotificationReadHandler::NotificationReadHandler(
     const userver::components::ComponentConfig& config,
     const userver::components::ComponentContext& context)
     : HttpHandlerBase(config, context),
       storage_(context.FindComponent<NotificationStorageComponent>()) {}
 
-std::string NotificationListHandler::HandleRequestThrow(
+std::string NotificationReadHandler::HandleRequestThrow(
     const userver::server::http::HttpRequest& request,
     userver::server::request::RequestContext&) const {
   // Set JSON content type
@@ -27,9 +27,9 @@ std::string NotificationListHandler::HandleRequestThrow(
     // Parse request body
     auto request_body =
         userver::formats::json::FromString(request.RequestBody());
-    auto list_request = request_body.As<V1ChannelNotificationListRequest>();
+    auto read_request = request_body.As<V1ChannelNotificationReadRequest>();
 
-    return HandleListNotifications(request, list_request);
+    return HandleMarkAsRead(request, read_request);
   } catch (const userver::formats::json::MemberMissingException& ex) {
     V1Error error{.error = "INVALID_REQUEST", .message = ex.what()};
     throw userver::server::handlers::ClientError(
@@ -40,19 +40,18 @@ std::string NotificationListHandler::HandleRequestThrow(
   }
 }
 
-std::string NotificationListHandler::HandleListNotifications(
+std::string NotificationReadHandler::HandleMarkAsRead(
     const userver::server::http::HttpRequest& /*http_request*/,
-    const V1ChannelNotificationListRequest& request) const {
+    const V1ChannelNotificationReadRequest& request) const {
   // Validate token using common library
   common::jwt::JwtValidator::ValidateToken(request.current_user.token);
 
-  // Get notifications from storage
-  auto notifications = storage_.GetUserNotifications(
-      request.channel_id, request.current_user.login);
+  // Mark notification as read in storage
+  bool ok = storage_.MarkNotificationAsRead(
+      request.channel_id, request.message_id, request.current_user.login);
 
   // Prepare response
-  V1ChannelNotificationListResponse response{.notifications =
-                                                 std::move(notifications)};
+  V1ChannelNotificationReadResponse response{.ok = ok};
 
   return userver::formats::json::ToString(Serialize(
       response,

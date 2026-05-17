@@ -60,6 +60,30 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /v1/channel/notification/read:
+    post:
+      summary: Mark a notification as read
+      description: Mark a specific message notification as read for the current user within a channel.
+      operationId: markChannelNotificationRead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1ChannelNotificationReadRequest'
+      responses:
+        '200':
+          description: Notification marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ChannelNotificationReadResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
     V1ChannelId:
@@ -186,6 +210,33 @@ components:
       properties:
         notification_id:
           $ref: '#/components/schemas/V1NotificationId'
+
+    V1ChannelNotificationReadRequest:
+      description: Request to mark a specific message notification as read within a channel.
+      type: object
+      additionalProperties: false
+      required:
+        - current_user
+        - channel_id
+        - message_id
+      properties:
+        current_user:
+          $ref: '#/components/schemas/V1CurrentUser'
+        channel_id:
+          $ref: '#/components/schemas/V1ChannelId'
+        message_id:
+          $ref: '#/components/schemas/V1MessageId'
+
+    V1ChannelNotificationReadResponse:
+      description: Response after marking a notification as read
+      type: object
+      additionalProperties: false
+      required:
+        - ok
+      properties:
+        ok:
+          description: Whether any notification was found and marked as read
+          type: boolean
 
   responses:
     BadRequest:
