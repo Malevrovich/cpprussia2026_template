@@ -3,6 +3,10 @@
 
 import json
 import uuid
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+from backend.common.test_utils import generate_token
 
 
 async def test_ping(service_client):
@@ -15,7 +19,7 @@ async def test_like_trigger_smoke(service_client):
     """Basic smoke test for like trigger endpoint."""
     request = {
         "current_user": {
-            "token": "a" * 128,
+            "token": generate_token(),
             "login": "smoketest",
             "name": "Smoke Test User"
         },

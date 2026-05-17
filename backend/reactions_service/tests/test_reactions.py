@@ -3,13 +3,17 @@
 
 import json
 import uuid
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+from backend.common.test_utils import generate_token
 
 
 async def test_like_trigger_add(service_client):
     """Test adding a like reaction."""
     request = {
         "current_user": {
-            "token": "a" * 128,
+            "token": generate_token(),
             "login": "testuser",
             "name": "Test User"
         },
@@ -32,7 +36,7 @@ async def test_like_trigger_remove(service_client):
     # First, add a reaction
     request = {
         "current_user": {
-            "token": "b" * 128,
+            "token": generate_token(),
             "login": "testuser2",
             "name": "Test User 2"
         },
@@ -61,7 +65,7 @@ async def test_like_trigger_idempotency(service_client):
     token = str(uuid.uuid4())
     request = {
         "current_user": {
-            "token": "c" * 128,
+            "token": generate_token(),
             "login": "testuser3",
             "name": "Test User 3"
         },
@@ -90,7 +94,7 @@ async def test_like_trigger_idempotency_conflict(service_client):
     token = str(uuid.uuid4())
     request1 = {
         "current_user": {
-            "token": "d" * 128,
+            "token": generate_token(),
             "login": "testuser4",
             "name": "Test User 4"
         },
@@ -133,7 +137,7 @@ async def test_get_reactions_with_data(service_client):
     for i, (user, animation) in enumerate(zip(users, animations)):
         request = {
             "current_user": {
-                "token": f"{user}_token".ljust(128, "x"),
+                "token": generate_token(),
                 "login": user,
                 "name": f"User {i+1}"
             },
@@ -174,10 +178,10 @@ async def test_like_trigger_validation(service_client):
     }
     
     response = await service_client.post("/v1/like/trigger", json=request)
-    assert response.status == 400
+    assert response.status == 401  # JWT validation returns 401 for invalid token
     
     # Test with short idempotency token
-    request["current_user"]["token"] = "a" * 128
+    request["current_user"]["token"] = generate_token()
     request["idempotency_token"] = "short"
     response = await service_client.post("/v1/like/trigger", json=request)
     assert response.status == 400
@@ -198,7 +202,7 @@ async def test_like_trigger_replace_animation(service_client):
     # Add like reaction
     request = {
         "current_user": {
-            "token": f"{user}_token".ljust(128, "x"),
+            "token": generate_token(),
             "login": user,
             "name": "Replace User"
         },

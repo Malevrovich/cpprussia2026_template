@@ -4,6 +4,7 @@
 #include <userver/formats/json/exception.hpp>
 #include <userver/http/common_headers.hpp>
 #include <userver/server/handlers/exceptions.hpp>
+#include "../../common/jwt_validation/jwt_validator.hpp"
 #include "json_utils.hpp"
 #include "notification_storage_component.hpp"
 
@@ -42,6 +43,9 @@ std::string NotificationListHandler::HandleRequestThrow(
 std::string NotificationListHandler::HandleListNotifications(
     const userver::server::http::HttpRequest& /*http_request*/,
     const V1ChannelNotificationListRequest& request) const {
+  // Validate token using common library
+  common::jwt::JwtValidator::ValidateToken(request.current_user.token);
+
   // Get notifications from storage
   auto notifications = storage_.GetUserNotifications(
       request.channel_id, request.current_user.login);

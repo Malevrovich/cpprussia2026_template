@@ -3,6 +3,7 @@
 #include <userver/components/component.hpp>
 #include <userver/server/handlers/exceptions.hpp>
 #include <userver/server/http/http_status.hpp>
+#include "../../common/jwt_validation/jwt_validator.hpp"
 #include "file_storage_component.hpp"
 #include "json_utils.hpp"
 
@@ -46,6 +47,10 @@ std::string FileByUriHandler::HandleGetFile(
         error,
         userver::formats::serialize::To<userver::formats::json::Value>{}));
   }
+
+  // Validate token using common library (token may be empty)
+  common::jwt::JwtValidator::ValidateToken(
+      request.current_user.token.value_or(""));
 
   // Check if file exists
   auto file_opt = storage_.GetFileByUri(request.uri);

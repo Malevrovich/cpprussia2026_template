@@ -2,6 +2,7 @@
 #include <userver/components/component.hpp>
 #include <userver/server/handlers/exceptions.hpp>
 #include <userver/utils/datetime.hpp>
+#include "../../common/jwt_validation/jwt_validator.hpp"
 #include "json_utils.hpp"
 #include "status_storage_component.hpp"
 
@@ -32,8 +33,8 @@ std::string StatusUpdateHandler::HandleRequestThrow(
     auto json = userver::formats::json::FromString(request_body);
     auto request = json.As<V1UserStatusUpdateRequest>();
 
-    // Validate token
-    ValidateToken(request.current_user.token);
+    // Validate token using common library
+    common::jwt::JwtValidator::ValidateToken(request.current_user.token);
 
     // Calculate expiration time
     auto expires_at = CalculateExpiresAt(request);
@@ -93,27 +94,6 @@ std::string StatusUpdateHandler::HandleRequestThrow(
                 Serialize(V1ErrorResponse{"internal_error", e.what()},
                           userver::formats::serialize::To<
                               userver::formats::json::Value>{}))});
-  }
-}
-
-void StatusUpdateHandler::ValidateToken(const std::string& token) const {
-  if (token.empty()) {
-    throw userver::server::handlers::Unauthorized(
-        userver::server::handlers::ExternalBody{
-            userver::formats::json::ToString(
-                Serialize(V1ErrorResponse{"unauthorized", "Token is required"},
-                          userver::formats::serialize::To<
-                              userver::formats::json::Value>{}))});
-  }
-
-  // Basic validation: token must be at least 128 characters as per OpenAPI spec
-  if (token.length() < 128) {
-    throw userver::server::handlers::Unauthorized(
-        userver::server::handlers::ExternalBody{
-            userver::formats::json::ToString(Serialize(
-                V1ErrorResponse{"unauthorized", "Invalid token format"},
-                userver::formats::serialize::To<
-                    userver::formats::json::Value>{}))});
   }
 }
 

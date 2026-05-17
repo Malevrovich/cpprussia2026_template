@@ -1,5 +1,10 @@
 # Start via `make test-debug` or `make test-release`
 
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+from backend.common.test_utils import generate_token
+
 
 async def test_basic(service_client):
     # Test that the service is running by checking ping endpoint
@@ -11,7 +16,7 @@ async def test_basic(service_client):
         "/v1/channel/message/new",
         json={
             "current_user": {
-                "token": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
+                "token": generate_token(),
                 "login": "testuser",
                 "name": "Test User"
             },

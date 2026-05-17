@@ -7,6 +7,7 @@
 #include <userver/server/http/http_response.hpp>
 #include <userver/tracing/span.hpp>
 
+#include "../../common/jwt_validation/jwt_validator.hpp"
 #include "json_utils.hpp"
 #include "reactions_storage_component.hpp"
 
@@ -55,11 +56,8 @@ std::string LikeTriggerHandler::HandleLikeTrigger(
           userver::server::handlers::ExternalBody{
               "Invalid idempotency_token: must be 16-256 characters"});
     }
-    if (request_body.current_user.token.size() != 128) {
-      throw userver::server::handlers::ClientError(
-          userver::server::handlers::ExternalBody{
-              "Invalid token: must be 128 characters"});
-    }
+    // Validate token using common library
+    common::jwt::JwtValidator::ValidateToken(request_body.current_user.token);
 
     // Check if message exists (according to spec, all messages exist)
     if (!storage_.MessageExists(request_body.channel_id,

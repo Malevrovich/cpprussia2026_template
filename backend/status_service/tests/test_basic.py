@@ -2,13 +2,17 @@
 
 import json
 import pytest
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+from backend.common.test_utils import generate_token
 
 
 async def test_status_update_success(service_client):
     """Test successful status update"""
     request = {
         "current_user": {
-            "token": "a" * 128,  # 128 characters as per spec
+            "token": generate_token(),  # 128 characters as per spec
             "login": "john_doe",
             "name": "John Doe"
         },
@@ -76,7 +80,7 @@ async def test_status_update_invalid_status_type(service_client):
     """Test status update with invalid status type"""
     request = {
         "current_user": {
-            "token": "a" * 128,
+            "token": generate_token(),
             "login": "john_doe",
             "name": "John Doe"
         },
@@ -98,7 +102,7 @@ async def test_status_by_login_success_public(service_client):
     # First, set a status
     update_request = {
         "current_user": {
-            "token": "a" * 128,
+            "token": generate_token(),
             "login": "jane_doe",
             "name": "Jane Doe"
         },
@@ -115,7 +119,7 @@ async def test_status_by_login_success_public(service_client):
     # Now retrieve it
     get_request = {
         "current_user": {
-            "token": "b" * 128,  # Different user
+            "token": generate_token(),  # Different user
             "login": "john_doe",
             "name": "John Doe"
         },
@@ -137,7 +141,7 @@ async def test_status_by_login_private_forbidden(service_client):
     # First, set a private status
     update_request = {
         "current_user": {
-            "token": "a" * 128,
+            "token": generate_token(),
             "login": "alice",
             "name": "Alice"
         },
@@ -154,7 +158,7 @@ async def test_status_by_login_private_forbidden(service_client):
     # Try to retrieve it as a different user
     get_request = {
         "current_user": {
-            "token": "b" * 128,
+            "token": generate_token(),
             "login": "bob",
             "name": "Bob"
         },
@@ -174,7 +178,7 @@ async def test_status_by_login_private_allowed_for_owner(service_client):
     # First, set a private status
     update_request = {
         "current_user": {
-            "token": "a" * 128,
+            "token": generate_token(),
             "login": "charlie",
             "name": "Charlie"
         },
@@ -191,7 +195,7 @@ async def test_status_by_login_private_allowed_for_owner(service_client):
     # Retrieve it as the owner
     get_request = {
         "current_user": {
-            "token": "a" * 128,  # Same user
+            "token": generate_token(),  # Same user
             "login": "charlie",
             "name": "Charlie"
         },
@@ -210,7 +214,7 @@ async def test_status_by_login_user_not_found(service_client):
     """Test retrieval for non-existent user"""
     request = {
         "current_user": {
-            "token": "a" * 128,
+            "token": generate_token(),
             "login": "john_doe",
             "name": "John Doe"
         },
@@ -232,7 +236,7 @@ async def test_status_update_all_status_types(service_client):
     for i, status_type in enumerate(status_types):
         request = {
             "current_user": {
-                "token": "a" * 128,
+                "token": generate_token(),
                 "login": f"user_{i}",
                 "name": f"User {i}"
             },
@@ -256,7 +260,7 @@ async def test_status_update_all_visibility_types(service_client):
     for i, visibility in enumerate(visibilities):
         request = {
             "current_user": {
-                "token": "a" * 128,
+                "token": generate_token(),
                 "login": f"vis_user_{i}",
                 "name": f"Visibility User {i}"
             },

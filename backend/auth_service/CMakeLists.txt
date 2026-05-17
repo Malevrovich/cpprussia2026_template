@@ -16,6 +16,9 @@ endif()
 
 userver_setup_environment()
 
+# Add common library (JWT validation)
+add_subdirectory(${CMAKE_SOURCE_DIR}/../common ${CMAKE_CURRENT_BINARY_DIR}/common)
+
 # Find OpenSSL for crypto utilities
 find_package(OpenSSL REQUIRED)
 
@@ -39,7 +42,7 @@ target_link_libraries(
 
 # The Service
 add_executable(${PROJECT_NAME} src/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_objs)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_objs jwt_validation)
 
 # Functional testing
 userver_testsuite_add_simple()

@@ -2,13 +2,17 @@
 
 import json
 import uuid
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+from backend.common.test_utils import generate_token
 
 
 async def test_create_notification(service_client):
     """Test creating a new notification."""
     request_data = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "alice",
             "name": "Alice Smith"
         },
@@ -38,7 +42,7 @@ async def test_list_notifications_empty(service_client):
     # Use a different user and channel that haven't been used before
     request_data = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "user_with_no_notifications",
             "name": "No Notifications User"
         },
@@ -62,7 +66,7 @@ async def test_create_and_list_notifications(service_client):
     # Create a notification
     create_request = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "charlie",
             "name": "Charlie Brown"
         },
@@ -83,7 +87,7 @@ async def test_create_and_list_notifications(service_client):
     # List notifications for the target user
     list_request = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "david",
             "name": "David Wilson"
         },
@@ -107,7 +111,7 @@ async def test_create_and_list_notifications(service_client):
     # List notifications for a different user (should be empty)
     list_request2 = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "charlie",
             "name": "Charlie Brown"
         },
@@ -129,7 +133,7 @@ async def test_create_notification_missing_fields(service_client):
     """Test creating a notification with missing required fields."""
     request_data = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "alice",
             "name": "Alice Smith"
         },
@@ -152,7 +156,7 @@ async def test_list_notifications_different_channels(service_client):
     # Create notification in channel 100
     create_request1 = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "user1",
             "name": "User One"
         },
@@ -170,7 +174,7 @@ async def test_list_notifications_different_channels(service_client):
     # Create notification in channel 200
     create_request2 = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "user1",
             "name": "User One"
         },
@@ -188,7 +192,7 @@ async def test_list_notifications_different_channels(service_client):
     # List notifications in channel 100
     list_request1 = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "user2",
             "name": "User Two"
         },
@@ -209,7 +213,7 @@ async def test_list_notifications_different_channels(service_client):
     # List notifications in channel 200
     list_request2 = {
         "current_user": {
-            "token": "",
+            "token": generate_token(),
             "login": "user2",
             "name": "User Two"
         },

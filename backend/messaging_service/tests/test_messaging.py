@@ -1,13 +1,17 @@
 # Functional tests for messaging service endpoints
 
 import pytest
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..'))
+from backend.common.test_utils import generate_token
 
 
 async def test_message_new_success(service_client):
     """Test successful creation of a new message."""
     request_data = {
         "current_user": {
-            "token": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
+            "token": generate_token(),
             "login": "testuser",
             "name": "Test User"
         },
@@ -31,7 +35,7 @@ async def test_message_new_empty_message(service_client):
     """Test creating a message with empty content."""
     request_data = {
         "current_user": {
-            "token": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
+            "token": generate_token(),
             "login": "testuser",
             "name": "Test User"
         },
@@ -77,7 +81,7 @@ async def test_message_by_timestamp_success(service_client):
     # First, create a message to ensure there's data
     create_request = {
         "current_user": {
-            "token": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
+            "token": generate_token(),
             "login": "testuser",
             "name": "Test User"
         },
@@ -200,7 +204,7 @@ async def test_multiple_messages_same_channel(service_client):
     for i in range(3):
         request_data = {
             "current_user": {
-                "token": f"token{i}",
+                "token": generate_token(),
                 "login": f"user{i}",
                 "name": f"User {i}"
             },
@@ -241,7 +245,7 @@ async def test_different_channels_independent(service_client):
     # Create message in channel 3
     request_data_ch3 = {
         "current_user": {
-            "token": "token_ch3",
+            "token": generate_token(),
             "login": "user_ch3",
             "name": "User Channel 3"
         },
@@ -258,7 +262,7 @@ async def test_different_channels_independent(service_client):
     # Create message in channel 4
     request_data_ch4 = {
         "current_user": {
-            "token": "token_ch4",
+            "token": generate_token(),
             "login": "user_ch4",
             "name": "User Channel 4"
         },

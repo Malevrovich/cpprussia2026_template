@@ -4,6 +4,7 @@
 #include <userver/logging/log.hpp>
 #include <userver/server/http/http_status.hpp>
 #include <userver/utils/datetime.hpp>
+#include "../../common/jwt_validation/jwt_validator.hpp"
 #include "json_utils.hpp"
 #include "message_storage_component.hpp"
 
@@ -68,6 +69,9 @@ std::string MessageNewHandler::HandleNewMessage(
         error,
         userver::formats::serialize::To<userver::formats::json::Value>{}));
   }
+
+  // Validate token using common library
+  common::jwt::JwtValidator::ValidateToken(request.current_user.token);
 
   // Check if channel exists (all channels exist per spec)
   if (!storage_.ChannelExists(request.channel_id)) {

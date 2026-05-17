@@ -4,6 +4,7 @@
 #include <userver/formats/json/exception.hpp>
 #include <userver/http/common_headers.hpp>
 #include <userver/server/handlers/exceptions.hpp>
+#include "../../common/jwt_validation/jwt_validator.hpp"
 #include "json_utils.hpp"
 #include "notification_storage_component.hpp"
 
@@ -51,6 +52,9 @@ std::string NotificationNewHandler::HandleCreateNotification(
                 Serialize(error, userver::formats::serialize::To<
                                      userver::formats::json::Value>{}))});
   }
+
+  // Validate token using common library
+  common::jwt::JwtValidator::ValidateToken(request.current_user.token);
 
   // Create notification in storage
   std::string notification_id = storage_.CreateNotification(
