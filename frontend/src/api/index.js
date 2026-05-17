@@ -62,6 +62,13 @@ export const notificationsApi = {
   create(data) {
     return apiClient.post('/notifications/v1/channel/notification/new', data)
   },
+  markRead(channelId, messageId, currentUser) {
+    return apiClient.post('/notifications/v1/channel/notification/read', {
+      current_user: currentUser,
+      channel_id: channelId,
+      message_id: messageId,
+    })
+  },
 }
 
 export const filesApi = {
