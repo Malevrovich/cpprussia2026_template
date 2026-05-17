@@ -1,11 +1,5 @@
 <template>
   <div class="message-input border-t border-gray-200 p-3 bg-white">
-    <!-- File preview -->
-    <div v-if="attachedFile" class="file-preview mb-2 p-2 bg-gray-100 rounded-lg flex items-center gap-2">
-      <span class="text-sm">📎 {{ attachedFile.name }}</span>
-      <button @click="removeFile" class="text-red-500 hover:text-red-600 ml-auto">✕</button>
-    </div>
-
     <!-- Mention panel (collapsible) -->
     <Transition name="mention-slide">
       <div v-if="showMention" class="mention-panel mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center gap-2">
@@ -26,20 +20,6 @@
     </Transition>
 
     <div class="flex items-end gap-2">
-      <input
-        type="file"
-        ref="fileInputRef"
-        class="hidden"
-        @change="handleFileSelect"
-      />
-      <!-- Attach file button -->
-      <button
-        class="p-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
-        @click="triggerFileSelect"
-        title="Attach file"
-      >
-        📎
-      </button>
       <!-- Mention toggle button -->
       <button
         class="p-2 rounded-lg transition-colors flex-shrink-0"
@@ -65,7 +45,7 @@
         :disabled="!canSend"
         @click="handleSend"
       >
-        {{ isUploading ? '…' : 'Send' }}
+        Send
       </button>
     </div>
   </div>
@@ -76,7 +56,6 @@ import { ref, computed, nextTick } from 'vue'
 import { useMessagesStore } from '@/stores/messages'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationsStore } from '@/stores/notifications'
-import { filesApi } from '@/api'
 
 const messagesStore = useMessagesStore()
 const authStore = useAuthStore()
@@ -84,9 +63,6 @@ const notificationsStore = useNotificationsStore()
 
 const messageText = ref('')
 const textareaRef = ref(null)
-const fileInputRef = ref(null)
-const attachedFile = ref(null)
-const isUploading = ref(false)
 
 // Mention state
 const showMention = ref(false)
@@ -101,9 +77,7 @@ const props = defineProps({
 
 const emit = defineEmits(['message-sent'])
 
-const canSend = computed(() => {
-  return (messageText.value.trim() || attachedFile.value) && !isUploading.value
-})
+const canSend = computed(() => !!messageText.value.trim())
 
 function toggleMention() {
   showMention.value = !showMention.value
@@ -117,82 +91,17 @@ function closeMention() {
   mentionLogin.value = ''
 }
 
-function triggerFileSelect() {
-  fileInputRef.value?.click()
-}
-
-async function handleFileSelect(event) {
-  const file = event.target.files?.[0]
-  if (!file) return
-  attachedFile.value = file
-}
-
-function removeFile() {
-  attachedFile.value = null
-  if (fileInputRef.value) {
-    fileInputRef.value.value = ''
-  }
-}
-
-async function uploadFile(file) {
-  try {
-    const base64 = await fileToBase64(file)
-    const response = await filesApi.upload({
-      file_name: file.name,
-      content: base64,
-      current_user: {
-        login: authStore.currentUser.login,
-        name: authStore.currentUser.name,
-        token: authStore.currentUser.token
-      }
-    })
-    return response.data?.uri || response.data?.file_uri
-  } catch (error) {
-    console.error('File upload failed:', error)
-    throw error
-  }
-}
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
 async function handleSend() {
   if (!canSend.value) return
 
   const text = messageText.value.trim()
-  let fileUri = null
-  let fileName = null
-
-  // Upload file if attached
-  if (attachedFile.value) {
-    isUploading.value = true
-    try {
-      fileUri = await uploadFile(attachedFile.value)
-      fileName = attachedFile.value.name
-    } catch (error) {
-      console.error('Failed to upload file:', error)
-      isUploading.value = false
-      return
-    } finally {
-      isUploading.value = false
-    }
-  }
-
-  if (!text && !fileUri) return
+  if (!text) return
 
   // Send the message and get back the sent message (with server-assigned message_id)
   const sentMessage = await messagesStore.sendMessage(
     props.channelId,
     text,
-    authStore.currentUser.login,
-    fileUri,
-    fileName
+    authStore.currentUser.login
   )
 
   // If a mention login was provided, send a notification to that user
@@ -207,7 +116,6 @@ async function handleSend() {
   }
 
   messageText.value = ''
-  removeFile()
   // Keep mention panel open but clear the login for next message
   mentionLogin.value = ''
   await nextTick()
