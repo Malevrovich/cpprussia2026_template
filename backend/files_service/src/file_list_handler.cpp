@@ -1,4 +1,4 @@
-#include "file_by_uri_handler.hpp"
+#include "file_list_handler.hpp"
 
 #include <userver/components/component.hpp>
 #include <userver/server/handlers/exceptions.hpp>
@@ -9,13 +9,13 @@
 
 namespace files_service {
 
-FileByUriHandler::FileByUriHandler(
+FileListHandler::FileListHandler(
     const userver::components::ComponentConfig& config,
     const userver::components::ComponentContext& context)
     : HttpHandlerBase(config, context),
       storage_(context.FindComponent<FileStorageComponent>()) {}
 
-std::string FileByUriHandler::HandleRequestThrow(
+std::string FileListHandler::HandleRequestThrow(
     const userver::server::http::HttpRequest& request,
     userver::server::request::RequestContext&) const {
   // Only POST method is allowed
@@ -30,49 +30,23 @@ std::string FileByUriHandler::HandleRequestThrow(
 
   // Parse request body
   auto request_body = userver::formats::json::FromString(request.RequestBody());
-  auto file_request = request_body.As<V1FileByUriRequest>();
+  auto list_request = request_body.As<V1FileListRequest>();
 
-  return HandleGetFile(request, file_request);
+  return HandleListFiles(request, list_request);
 }
 
-std::string FileByUriHandler::HandleGetFile(
+std::string FileListHandler::HandleListFiles(
     const userver::server::http::HttpRequest& http_request,
-    const V1FileByUriRequest& request) const {
-  // Validate required fields
-  if (request.uri.empty()) {
-    http_request.GetHttpResponse().SetStatus(
-        userver::server::http::HttpStatus::kBadRequest);
-    V1ErrorResponse error{"Field 'uri' is required"};
-    return userver::formats::json::ToString(Serialize(
-        error,
-        userver::formats::serialize::To<userver::formats::json::Value>{}));
-  }
-
+    const V1FileListRequest& request) const {
   // Validate token using common library
   common::jwt::JwtValidator::ValidateToken(request.current_user.token);
 
-  // Check if file exists
-  auto file_opt = storage_.GetFileByUri(request.uri);
-  if (!file_opt.has_value()) {
-    http_request.GetHttpResponse().SetStatus(
-        userver::server::http::HttpStatus::kNotFound);
-    V1ErrorResponse error{"File not found"};
-    return userver::formats::json::ToString(Serialize(
-        error,
-        userver::formats::serialize::To<userver::formats::json::Value>{}));
-  }
+  // List files with optional filter
+  auto files = storage_.ListFiles(request.login);
 
-  // According to spec: any authorized user can download any file
-  // No ownership check needed
-
-  // Create flat response (not wrapped in 'file' field)
-  const auto& file = file_opt.value();
-  V1FileByUriResponse response;
-  response.login = file.login;
-  response.filename = file.filename;
-  response.content = file.content;
-  response.mime_type = file.mime_type;
-  response.size = file.size;
+  // Create response
+  V1FileListResponse response;
+  response.files = std::move(files);
 
   // Set response content type
   http_request.GetHttpResponse().SetContentType(

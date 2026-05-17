@@ -39,6 +39,11 @@ class FileStorageComponent final : public userver::components::ComponentBase {
   /// Returns true if file exists and login matches.
   bool CheckOwnership(const std::string& uri, const V1Login& user_login);
 
+  /// List files with optional filter by owner login.
+  /// If login is empty, returns all files.
+  std::vector<V1FileMetadata> ListFiles(
+      const std::optional<V1Login>& login_filter) const;
+
   /// Get statistics about stored files.
   struct Statistics {
     size_t total_files;

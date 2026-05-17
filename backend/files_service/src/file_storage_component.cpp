@@ -74,6 +74,25 @@ bool FileStorageComponent::CheckOwnership(const std::string& uri,
   return it->second.file.login == user_login;
 }
 
+std::vector<V1FileMetadata> FileStorageComponent::ListFiles(
+    const std::optional<V1Login>& login_filter) const {
+  std::lock_guard lock(mutex_);
+  std::vector<V1FileMetadata> result;
+  for (const auto& [uri, record] : files_by_uri_) {
+    if (login_filter.has_value() && record.file.login != login_filter.value()) {
+      continue;
+    }
+    V1FileMetadata metadata;
+    metadata.uri = uri;
+    metadata.login = record.file.login;
+    metadata.filename = record.file.filename;
+    metadata.mime_type = record.file.mime_type;
+    metadata.size = record.file.size;
+    result.push_back(std::move(metadata));
+  }
+  return result;
+}
+
 FileStorageComponent::Statistics FileStorageComponent::GetStatistics() const {
   std::lock_guard lock(mutex_);
   Statistics stats{};

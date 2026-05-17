@@ -2,6 +2,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace files_service {
 
@@ -10,7 +11,7 @@ using V1Login = std::string;
 
 // V1CurrentUser - Current user information
 struct V1CurrentUser {
-  std::optional<std::string> token;  // 128 characters if present
+  std::string token;  // 128 characters if authorized (empty otherwise)
   V1Login login;
   std::string name;
 };
@@ -51,9 +52,33 @@ struct V1FileByUriRequest {
   std::string uri;
 };
 
-// V1FileByUriResponse - Response with file information
+// V1FileByUriResponse - Response with file information (flat structure)
 struct V1FileByUriResponse {
-  V1File file;
+  V1Login login;
+  std::string filename;
+  std::string content;  // Base64 encoded
+  std::optional<std::string> mime_type;
+  std::optional<int64_t> size;
+};
+
+// V1FileMetadata - File metadata without content (for list endpoints)
+struct V1FileMetadata {
+  std::string uri;
+  V1Login login;
+  std::string filename;
+  std::optional<std::string> mime_type;
+  std::optional<int64_t> size;
+};
+
+// V1FileListRequest - Request to list files
+struct V1FileListRequest {
+  V1CurrentUser current_user;
+  std::optional<V1Login> login;  // Optional filter by owner
+};
+
+// V1FileListResponse - Response with list of file metadata
+struct V1FileListResponse {
+  std::vector<V1FileMetadata> files;
 };
 
 }  // namespace files_service

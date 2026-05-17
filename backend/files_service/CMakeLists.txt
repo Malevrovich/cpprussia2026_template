@@ -25,6 +25,7 @@ include_directories(src)
 add_library(
     ${PROJECT_NAME}_objs OBJECT
     src/json_utils.cpp
+    src/file_list_handler.cpp
     src/file_storage_component.cpp
     src/file_new_handler.cpp
     src/file_by_uri_handler.cpp

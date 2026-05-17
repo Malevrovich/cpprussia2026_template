@@ -81,6 +81,12 @@ export const filesApi = {
       uri,
     })
   },
+  // List uploaded files. Pass `login` to filter by owner; omit to list all.
+  list(currentUser, login = null) {
+    const payload = { current_user: currentUser }
+    if (login) payload.login = login
+    return apiClient.post('/files/v1/file/list', payload)
+  },
 }
 
 export const reactionsApi = {

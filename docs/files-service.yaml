@@ -7,7 +7,13 @@ openapi: 3.0.3
 info:
   title: Files Service API
   version: 1.0.0
-  description: Сервис передачи файлов
+  description: |
+    Сервис передачи файлов.
+
+    Авторизация доступа к файлам — coarse-grained: любой авторизованный
+    пользователь может скачать любой файл по его URI и получить список всех
+    загруженных файлов (опционально с фильтром по логину владельца). Это
+    позволяет реализовать обмен файлами между пользователями в воркшоп-демо.
 
 paths:
   /v1/file/new:
@@ -80,14 +86,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/V1ErrorResponse'
-        '403':
-          description: Forbidden - user is not the file owner
+        '404':
+          description: File not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/V1ErrorResponse'
-        '404':
-          description: File not found
+
+  /v1/file/list:
+    post:
+      operationId: listFiles
+      summary: Получить список загруженных файлов (метаданные, без содержимого)
+      description: |
+        Возвращает список метаданных файлов (без содержимого) для всех
+        авторизованных пользователей. Если в теле запроса передан `login`,
+        результат фильтруется по владельцу.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/V1FileListRequest'
+            example:
+              current_user:
+                token: "aaaa...aaaa"
+                login: "user123"
+                name: "John Doe"
+              login: "alice"
+      responses:
+        '200':
+          description: List of file metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1FileListResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/V1ErrorResponse'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -229,10 +269,94 @@ components:
                     example: "s3://bucket/file-id"
 
         V1FileByUriResponse:
+            description: |
+                Response with file content. The fields mirror V1File (flat structure,
+                not wrapped in a `file` key) so the client can decode the base64 content directly.
             type: object
             additionalProperties: false
             required:
-              - file
+              - login
+              - filename
+              - content
             properties:
-                file:
-                    $ref: '#/components/schemas/V1File'
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                filename:
+                    type: string
+                    minLength: 3
+                    maxLength: 256
+                    example: "document.pdf"
+                content:
+                    type: string
+                    format: base64
+                    description: Base64 encoded file content
+                    example: "JVBERi0xLjQK..."
+                mime_type:
+                    type: string
+                    description: MIME type of the file (optional, may be omitted by server)
+                    example: "application/pdf"
+                size:
+                    type: integer
+                    format: int64
+                    description: File size in bytes (optional, may be omitted by server)
+                    example: 1024
+
+        V1FileMetadata:
+            description: |
+                Metadata of an uploaded file, returned in list endpoints.
+                Does NOT contain the base64 content (use /v1/file/by-uri to fetch content).
+            type: object
+            additionalProperties: false
+            required:
+              - uri
+              - login
+              - filename
+            properties:
+                uri:
+                    type: string
+                    minLength: 3
+                    format: uri
+                    description: URI of the file
+                    example: "s3://files-bucket/abc123"
+                login:
+                    $ref: '#/components/schemas/V1Login'
+                filename:
+                    type: string
+                    minLength: 3
+                    maxLength: 256
+                    example: "document.pdf"
+                mime_type:
+                    type: string
+                    description: MIME type of the file
+                    example: "application/pdf"
+                size:
+                    type: integer
+                    format: int64
+                    description: File size in bytes
+                    example: 1024
+
+        V1FileListRequest:
+            type: object
+            additionalProperties: false
+            required:
+              - current_user
+            properties:
+                current_user:
+                    $ref: '#/components/schemas/V1CurrentUser'
+                login:
+                    description: |
+                        Optional filter. If set, only files owned by this user are returned.
+                        If omitted, all uploaded files (across all users) are returned.
+                    allOf:
+                      - $ref: '#/components/schemas/V1Login'
+
+        V1FileListResponse:
+            type: object
+            additionalProperties: false
+            required:
+              - files
+            properties:
+                files:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/V1FileMetadata'

@@ -76,7 +76,9 @@ std::string FileNewHandler::HandleUploadFile(
 
   // Create response
   V1FileNewResponse response;
-  // Create a simple current_user from login (no authentication for now)
+  // Create current_user from login (token is empty since no authentication for
+  // upload)
+  response.current_user.token = "";  // Empty token (not authorized)
   response.current_user.login = request.login;
   response.current_user.name = "User";  // Default name
   response.uri = uri;

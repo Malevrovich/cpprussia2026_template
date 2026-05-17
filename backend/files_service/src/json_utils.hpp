@@ -24,6 +24,22 @@ V1FileNewRequest Parse(const json::Value& json,
 V1FileByUriRequest Parse(const json::Value& json,
                          userver::formats::parse::To<V1FileByUriRequest>);
 
+// Parse V1FileByUriResponse from JSON (flat structure)
+V1FileByUriResponse Parse(const json::Value& json,
+                          userver::formats::parse::To<V1FileByUriResponse>);
+
+// Parse V1FileMetadata from JSON
+V1FileMetadata Parse(const json::Value& json,
+                     userver::formats::parse::To<V1FileMetadata>);
+
+// Parse V1FileListRequest from JSON
+V1FileListRequest Parse(const json::Value& json,
+                        userver::formats::parse::To<V1FileListRequest>);
+
+// Parse V1FileListResponse from JSON
+V1FileListResponse Parse(const json::Value& json,
+                         userver::formats::parse::To<V1FileListResponse>);
+
 // Serialize V1CurrentUser to JSON
 json::Value Serialize(const V1CurrentUser& user,
                       userver::formats::serialize::To<json::Value>);
@@ -36,8 +52,16 @@ json::Value Serialize(const V1File& file,
 json::Value Serialize(const V1FileNewResponse& response,
                       userver::formats::serialize::To<json::Value>);
 
-// Serialize V1FileByUriResponse to JSON
+// Serialize V1FileByUriResponse to JSON (flat structure)
 json::Value Serialize(const V1FileByUriResponse& response,
+                      userver::formats::serialize::To<json::Value>);
+
+// Serialize V1FileMetadata to JSON
+json::Value Serialize(const V1FileMetadata& metadata,
+                      userver::formats::serialize::To<json::Value>);
+
+// Serialize V1FileListResponse to JSON
+json::Value Serialize(const V1FileListResponse& response,
                       userver::formats::serialize::To<json::Value>);
 
 // Serialize V1ErrorResponse to JSON

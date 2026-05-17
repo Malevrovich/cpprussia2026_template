@@ -11,6 +11,7 @@
 #include <userver/utils/daemon_run.hpp>
 
 #include "file_by_uri_handler.hpp"
+#include "file_list_handler.hpp"
 #include "file_new_handler.hpp"
 #include "file_storage_component.hpp"
 
@@ -25,7 +26,8 @@ int main(int argc, char* argv[]) {
           .Append<userver::congestion_control::Component>()
           .Append<files_service::FileStorageComponent>()
           .Append<files_service::FileNewHandler>()
-          .Append<files_service::FileByUriHandler>();
+          .Append<files_service::FileByUriHandler>()
+          .Append<files_service::FileListHandler>();
 
   return userver::utils::DaemonMain(argc, argv, component_list);
 }

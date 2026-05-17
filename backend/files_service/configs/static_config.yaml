@@ -79,5 +79,15 @@ components_manager:
             request_body_size_log_limit: 1024
             response_data_size_log_limit: 1024
 
+        # Handler for listing files
+        handler-file-list:
+            path: /v1/file/list
+            method: POST
+            task_processor: main-task-processor
+            throttling_enabled: false
+            url_trailing_slash: strict-match
+            request_body_size_log_limit: 1024
+            response_data_size_log_limit: 1024
+
     coro_pool:
         stack_usage_monitor_enabled: false
