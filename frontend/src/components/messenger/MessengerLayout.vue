@@ -1,5 +1,5 @@
 <template>
-  <div class="messenger-layout flex h-screen w-full overflow-hidden">
+  <div class="messenger-layout flex h-full w-full overflow-hidden">
     <ChatList 
       @chat-selected="handleChatSelected"
       @start-direct-chat="handleStartDirectChat"

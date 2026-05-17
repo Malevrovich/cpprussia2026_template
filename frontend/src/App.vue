@@ -38,9 +38,10 @@ function logout() {
 
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
 body { font-family: Arial, sans-serif; background: #f5f5f5; }
-#app { min-height: 100vh; }
-.navbar { background: #2c3e50; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+#app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.navbar { background: #2c3e50; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 .brand { font-size: 1.5rem; font-weight: bold; }
 .nav-links { display: flex; gap: 1rem; align-items: center; }
 .nav-links a { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; }
@@ -48,8 +49,8 @@ body { font-family: Arial, sans-serif; background: #f5f5f5; }
 .nav-links a.router-link-active { background: #3498db; }
 .logout-btn { background: #e74c3c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
 .logout-btn:hover { background: #c0392b; }
-.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-.container.full-screen { max-width: none; margin: 0; padding: 0; height: calc(100vh - 60px); }
+.container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; flex: 1; overflow-y: auto; width: 100%; }
+.container.full-screen { max-width: none; margin: 0; padding: 0; flex: 1; min-height: 0; overflow: hidden; }
 .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1rem; }
 .card h2 { margin-bottom: 1rem; color: #2c3e50; }
 .form-group { margin-bottom: 1rem; }
